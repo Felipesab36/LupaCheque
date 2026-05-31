@@ -1,0 +1,6 @@
+{
+  "name": "LupaCheque",
+  "description": "Panel de administración web para verificación y gestión de cheques",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

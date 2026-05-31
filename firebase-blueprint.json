@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "admin": {
+      "title": "Admin",
+      "description": "System administrator with management access",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Google email address"
+        },
+        "twoFactor": {
+          "type": "boolean",
+          "description": "Whether 2FA is enabled"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["email", "twoFactor"]
+    },
+    "visitor": {
+      "title": "Visitor",
+      "description": "Visitor with transient read-only access",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Google email address"
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Start date for access"
+        },
+        "validTo": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration date for access"
+        },
+        "twoFactor": {
+          "type": "boolean",
+          "description": "Whether 2FA is enabled"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["email", "validFrom", "validTo", "twoFactor"]
+    }
+  },
+  "firestore": {
+    "admins": {
+      "schema": "admin",
+      "description": "List of system administrators"
+    },
+    "visitors": {
+      "schema": "visitor",
+      "description": "List of temporary visitors"
+    }
+  }
+}
