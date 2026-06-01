@@ -19,7 +19,7 @@
         <div class="w-full p-4 bg-rose-50 text-rose-800 border-l-4 border-rose-500 rounded-r-xl outline-none text-xs flex gap-3 animate-fade-in" id="login-auth-error">
           <mat-icon class="text-rose-500 shrink-0 text-sm">warning</mat-icon>
           <div class="space-y-1">
-            <span class="font-semibold block">Acceso Restringido</span>
+            <span class="font-semibold block">{{ t('access_restricted') }}</span>
             <p class="leading-relaxed opacity-95">{{ loginError() }}</p>
           </div>
         </div>
@@ -35,7 +35,7 @@
         >
           @if (authLoading()) {
             <span class="w-4 h-4 rounded-full border-2 border-zinc-300 border-t-emerald-600 animate-spin shrink-0"></span>
-            <span>Conectando...</span>
+            <span>{{ t('connecting') }}</span>
           } @else {
             <!-- Google Brand Icon SVG -->
             <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true" width="20px" height="20px">
@@ -44,7 +44,7 @@
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
             </svg>
-            <span>Iniciar sesión con Google</span>
+            <span>{{ t('login_google') }}</span>
           }
         </button>
 
@@ -56,14 +56,14 @@
             id="btn-demo-bypass"
           >
             <mat-icon class="text-xs shrink-0">bolt</mat-icon>
-            <span>Entrar rápido (Evaluar como Admin)</span>
+            <span>{{ t('login_demo') }}</span>
           </button>
         </div>
       </div>
 
       <!-- Minimal Subtitle -->
       <span class="text-xs text-zinc-400 font-normal select-none text-center">
-        Acceso restringido para personal autorizado.<br>SuperAdmin: <span class="font-mono text-zinc-600">emprende@biia-dots.com</span>
+        {{ t('restricted_access') }}<br>SuperAdmin: <span class="font-mono text-zinc-600">emprende@biia-dots.com</span>
       </span>
     </div>
   </div>
@@ -92,28 +92,39 @@
     }
 
     <!-- Sidebar -->
-    <aside class="w-64 h-screen border-r border-zinc-200/80 bg-white flex flex-col flex-shrink-0 sticky top-0 left-0" id="sidebar-container">
-      <!-- Sidebar Logo -->
-      <div class="h-16 border-b border-zinc-100/90 flex items-center justify-center px-6 bg-white shrink-0">
-        <img 
-          src="logo.png" 
-          alt="LupaCheque" 
-          class="h-9 w-auto object-contain"
-          id="sidebar-logo"
-          referrerpolicy="no-referrer"
-        />
+    <aside 
+      class="h-screen border-r border-zinc-200/80 bg-white flex flex-col flex-shrink-0 sticky top-0 left-0 transition-all duration-300 ease-in-out z-40 overflow-hidden" 
+      [ngClass]="sidebarCollapsed() ? 'w-20' : 'w-64'"
+      id="sidebar-container"
+    >
+      <!-- Sidebar Logo & Toggle -->
+      <div class="h-16 border-b border-zinc-100/90 flex items-center justify-between px-5 bg-white shrink-0">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <img 
+            src="logo.png" 
+            alt="LupaCheque" 
+            class="h-8 w-auto object-contain transition-all duration-300"
+            [ngClass]="sidebarCollapsed() ? 'scale-90 ml-1' : ''"
+            id="sidebar-logo"
+            referrerpolicy="no-referrer"
+          />
+          @if (!sidebarCollapsed()) {
+            <span class="text-lg font-bold text-zinc-800 tracking-tight animate-fade-in truncate">LupaCheque</span>
+          }
+        </div>
       </div>
 
       <!-- Navigation tabs list -->
-      <nav class="flex-grow overflow-y-auto px-3.5 py-6 space-y-1.5" id="sidebar-navigation">
+      <nav class="flex-grow overflow-y-auto px-3 py-6 space-y-1.5 scrollbar-hide" id="sidebar-navigation">
         @for (tab of tabs; track tab.name) {
           <button 
             (click)="selectTab(tab.name)"
-            class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all group cursor-pointer duration-200 border-l-4"
+            class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all group cursor-pointer duration-200 border-l-4 relative"
             [ngClass]="selectedTab() === tab.name 
               ? 'bg-emerald-50/60 text-emerald-800 border-emerald-500 font-semibold shadow-xs' 
               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50/90 border-transparent'"
             [attr.id]="'tab-' + tab.name.toLowerCase()"
+            [title]="sidebarCollapsed() ? t(tab.name) : ''"
           >
             <mat-icon 
               class="text-xl transition-colors shrink-0" 
@@ -123,68 +134,85 @@
             >
               {{ tab.icon }}
             </mat-icon>
-            <span class="truncate">{{ tab.name }}</span>
+            @if (!sidebarCollapsed()) {
+              <span class="truncate animate-fade-in">{{ t(tab.name) }}</span>
+            }
           </button>
         }
       </nav>
 
+      <!-- Sidebar Toggle (Bottom) -->
+      <div class="p-3 border-t border-zinc-100 bg-white">
+        <button 
+          (click)="toggleSidebar()"
+          class="w-full flex items-center justify-center p-2.5 rounded-xl text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all cursor-pointer group"
+          [title]="sidebarCollapsed() ? t('menu_expand') : t('menu_collapse')"
+        >
+          <mat-icon class="text-xl transition-transform duration-300" [ngClass]="sidebarCollapsed() ? 'rotate-180' : ''">
+            first_page
+          </mat-icon>
+          @if (!sidebarCollapsed()) {
+            <span class="ml-2.5 text-xs font-semibold animate-fade-in">{{ t('menu_collapse') }}</span>
+          }
+        </button>
+      </div>
+
       <!-- Connected Profile Indicator inside Sidebar footer -->
       <div class="p-4 border-t border-zinc-100 bg-zinc-50/40 shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shrink-0" title="Sesión activa"></div>
-          <span class="text-xs text-zinc-400 font-mono truncate select-none">{{ userEmail }}</span>
+        <div class="flex items-center gap-3" [ngClass]="sidebarCollapsed() ? 'justify-center' : ''">
+          <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shrink-0" [title]="t('logged_as')"></div>
+          @if (!sidebarCollapsed()) {
+            <span class="text-[10px] text-zinc-400 font-mono truncate select-none animate-fade-in">{{ userEmail }}</span>
+          }
         </div>
       </div>
     </aside>
 
     <!-- Main Content Panel -->
-    <div class="flex-grow flex flex-col min-h-screen" id="main-content-panel">
+    <div class="flex-grow flex flex-col min-h-screen overflow-x-hidden" id="main-content-panel">
       
       <!-- Top Header -->
-      <header class="h-16 border-b border-zinc-200/70 bg-white flex items-center justify-between px-8 sticky top-0 z-30 shrink-0" id="top-header">
+      <header class="h-16 border-b border-zinc-200/70 bg-white flex items-center justify-between px-6 sticky top-0 z-30 shrink-0" id="top-header">
         
         <!-- Left space filler / current breadcrumb placeholder -->
         <div class="flex items-center gap-2">
-          <span class="text-xs font-mono text-zinc-400 select-none">LUPACHEQUE</span>
+          <span class="text-[10px] font-bold text-zinc-300 tracking-widest select-none">LUPACHEQUE</span>
           <span class="text-xs text-zinc-300">/</span>
-          <span class="text-xs font-medium text-emerald-700 tracking-wide uppercase">{{ selectedTab() }}</span>
+          <span class="text-xs font-bold text-emerald-700 tracking-wide uppercase">{{ t(selectedTab()) }}</span>
         </div>
 
         <!-- Center: Visual Language Selector -->
         <div class="flex items-center justify-center bg-zinc-100/90 p-1 rounded-full border border-zinc-200/30 shrink-0" id="lang-selector">
           <button 
             (click)="setLanguage('es')"
-            class="flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
-            [ngClass]="selectedLanguage() === 'es' ? 'bg-white text-zinc-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
+            class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
+            [ngClass]="selectedLanguage() === 'es' ? 'bg-white text-emerald-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
             id="lang-es"
           >
             <span class="text-sm">🇪🇸</span>
-            <span>Español</span>
+            <span>{{ t('lang_es') }}</span>
           </button>
           
           <button 
             (click)="setLanguage('en')"
-            class="flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
-            [ngClass]="selectedLanguage() === 'en' ? 'bg-white text-zinc-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
+            class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
+            [ngClass]="selectedLanguage() === 'en' ? 'bg-white text-emerald-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
             id="lang-en"
           >
             <span class="text-sm">🇺🇸</span>
-            <span>Inglés</span>
+            <span>{{ t('lang_en') }}</span>
           </button>
         </div>
 
         <!-- Right Side: Profile & notification & logout controls -->
-        <div class="flex items-center gap-4 shrink-0" id="header-profile-section">
+        <div class="flex items-center gap-3 shrink-0" id="header-profile-section">
           
           <!-- User info details -->
-          <div class="flex items-center gap-3 bg-zinc-50 border border-zinc-100 rounded-full pl-3.5 pr-1.5 py-1" id="profile-indicator">
-            <!-- User Role -->
-            <span class="text-xs font-semibold text-emerald-800 font-mono uppercase tracking-wider select-none">
+          <div class="hidden sm:flex items-center gap-3 bg-zinc-50 border border-zinc-100 rounded-full pl-3.5 pr-1.5 py-1" id="profile-indicator">
+            <span class="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-wider select-none">
               {{ userRole }}
             </span>
-            
-            <!-- Profile avatar circle -->
-            <div class="relative w-7 h-7 bg-zinc-200 rounded-full overflow-hidden border border-zinc-300 shadow-2xs">
+            <div class="relative w-8 h-8 bg-zinc-200 rounded-full overflow-hidden border-2 border-white shadow-sm">
               <img 
                 [src]="userPhotoUrl()" 
                 alt="Google User" 
@@ -198,35 +226,182 @@
           <!-- Notification Bell Icon (Campana) -->
           <button 
             (click)="toggleAlerts()"
-            class="relative p-2 text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 rounded-xl transition-all cursor-pointer outline-none shrink-0" 
-            title="Alertas"
+            class="relative p-2.5 text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer outline-none shrink-0 border border-transparent hover:border-emerald-100" 
+            [title]="t('alerts')"
             id="btn-notifications"
           >
-            <mat-icon class="text-[22px]">notifications</mat-icon>
+            <mat-icon class="text-xl">notifications</mat-icon>
             
-            <!-- Small alert notification indicator badge -->
             @if (hasAlerts()) {
-              <span class="absolute top-1.5 right-1.5 min-w-4 h-4 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1 border border-white shadow-xs animate-pulse">
+              <span class="absolute top-1.5 right-1.5 min-w-4 h-4 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full px-1 border border-white shadow-xs animate-pulse">
                 {{ notificationCount() }}
               </span>
             }
           </button>
 
+          <div class="w-px h-6 bg-zinc-200 mx-1"></div>
+
           <!-- Logout Button (Cerrar sesión) -->
           <button 
             (click)="logout()"
-            class="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-55 rounded-xl transition-all cursor-pointer outline-none border border-transparent hover:border-rose-100 shrink-0"
-            title="Cerrar sesión"
+            class="p-2.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer outline-none border border-transparent hover:border-rose-100 shrink-0"
+            [title]="t('logout')"
             id="btn-logout"
           >
-            <mat-icon class="text-[22px]">logout</mat-icon>
+            <mat-icon class="text-xl">logout</mat-icon>
           </button>
 
         </div>
       </header>
 
       <!-- Central Content Area -->
-      @if (selectedTab() === 'Facturación') {
+      @if (selectedTab() === 'Dashboard') {
+        <main class="flex-grow flex flex-col p-6 md:p-10 space-y-8 overflow-y-auto bg-zinc-50/10" id="dashboard-content">
+          <!-- Header with welcome -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200/50">
+            <div>
+              <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight">{{ t('Dashboard') }}</h1>
+              <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('welcome') }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 bg-white border border-zinc-200 px-4 py-2.5 rounded-2xl shadow-sm" [title]="t('evolution_trends')">
+                <mat-icon class="text-zinc-400 text-lg">calendar_month</mat-icon>
+                <div class="flex items-center gap-2 text-xs font-semibold text-zinc-600">
+                  <input type="date" [value]="dashboardStartDate()" (input)="dashboardStartDate.set($any($event.target).value)" class="outline-none bg-transparent cursor-pointer border-b border-dashed border-zinc-200 focus:border-emerald-500 transition-colors" [title]="t('date_start')">
+                  <span class="text-zinc-300">{{ t('to') }}</span>
+                  <input type="date" [value]="dashboardEndDate()" (input)="dashboardEndDate.set($any($event.target).value)" class="outline-none bg-transparent cursor-pointer border-b border-dashed border-zinc-200 focus:border-emerald-500 transition-colors" [title]="t('date_end')">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metric Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Card 1: Banks (Emerald) -->
+            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('banks')">
+              <div class="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm shrink-0">
+                  <mat-icon class="text-3xl">account_balance</mat-icon>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ totalBancos() }}</h3>
+                  <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{{ t('banks') }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Users (Rose) -->
+            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('users')">
+              <div class="absolute right-0 top-0 w-24 h-24 bg-rose-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shadow-sm shrink-0">
+                  <mat-icon class="text-3xl">people</mat-icon>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ totalUsuarios() }}</h3>
+                  <p class="text-xs font-semibold text-rose-700 uppercase tracking-wider">{{ t('users') }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Queries (Violet) -->
+            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('queries_today')">
+              <div class="absolute right-0 top-0 w-24 h-24 bg-violet-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 shadow-sm shrink-0">
+                  <mat-icon class="text-3xl">help_outline</mat-icon>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ queriesHoy() }}</h3>
+                  <p class="text-xs font-semibold text-violet-700 uppercase tracking-wider">{{ t('queries_today') }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Revenue (Amber) -->
+            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('revenue_today')">
+              <div class="absolute right-0 top-0 w-24 h-24 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shadow-sm shrink-0">
+                  <mat-icon class="text-3xl">payments</mat-icon>
+                </div>
+                <div>
+                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">${{ ingresosHoy() | number:'1.2-2' }}</h3>
+                  <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">{{ t('revenue_today') }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evolution Charts Section -->
+          <div class="bg-white border border-zinc-200/60 rounded-3xl p-8 shadow-xs space-y-10">
+            <h2 class="text-lg font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+              <mat-icon class="text-emerald-600">trending_up</mat-icon>
+              {{ t('evolution_trends') }}
+            </h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <!-- Chart 1: Accounts -->
+              <div class="space-y-4" [title]="t('daily_activity')">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_accs') }}</span>
+                  <span class="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{{ accountsTrendData().length }} {{ t('days') }}</span>
+                </div>
+                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                  <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <path [attr.d]="getAreaPath(accountsTrendData(), 300, 150)" class="fill-emerald-500/5 transition-all duration-500" />
+                    <path [attr.d]="getLinePath(accountsTrendData(), 300, 150)" class="stroke-emerald-500 fill-none stroke-2 transition-all duration-500" />
+                  </svg>
+                </div>
+                <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
+                  <span>{{ dashboardStartDate() }}</span>
+                  <span>{{ dashboardEndDate() }}</span>
+                </div>
+                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('daily_activity') }}</p>
+              </div>
+
+              <!-- Chart 2: Queries -->
+              <div class="space-y-4" [title]="t('processed_vol')">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_queries') }}</span>
+                  <span class="text-xs font-mono text-violet-600 font-bold bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-100">{{ queriesTrendData().length }} {{ t('days') }}</span>
+                </div>
+                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                  <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <path [attr.d]="getAreaPath(queriesTrendData(), 300, 150)" class="fill-violet-500/5 transition-all duration-500" />
+                    <path [attr.d]="getLinePath(queriesTrendData(), 300, 150)" class="stroke-violet-500 fill-none stroke-2 transition-all duration-500" />
+                  </svg>
+                </div>
+                <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
+                  <span>{{ dashboardStartDate() }}</span>
+                  <span>{{ dashboardEndDate() }}</span>
+                </div>
+                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('processed_vol') }}</p>
+              </div>
+
+              <!-- Chart 3: Revenue -->
+              <div class="space-y-4" [title]="t('accumulated_income')">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_revenue') }}</span>
+                  <span class="text-xs font-mono text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100">{{ incomeTrendData().length }} {{ t('days') }}</span>
+                </div>
+                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                  <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <path [attr.d]="getAreaPath(incomeTrendData(), 300, 150)" class="fill-amber-500/5 transition-all duration-500" />
+                    <path [attr.d]="getLinePath(incomeTrendData(), 300, 150)" class="stroke-amber-500 fill-none stroke-2 transition-all duration-500" />
+                  </svg>
+                </div>
+                <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
+                  <span>{{ dashboardStartDate() }}</span>
+                  <span>{{ dashboardEndDate() }}</span>
+                </div>
+                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('accumulated_income') }}</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      } @else if (selectedTab() === 'Facturación') {
         <!-- Facturación Screen -->
         <main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto bg-zinc-50/10" id="container-central-content-facturacion">
           <form [formGroup]="facturacionForm" (ngSubmit)="$event.preventDefault()" class="flex-grow flex flex-col space-y-8">
@@ -234,13 +409,13 @@
             <!-- Header Section -->
             <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
               <div>
-                <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-facturacion">Datos de Facturación Fiscal (SRI)</h1>
-                <p class="text-xs text-zinc-400 mt-1 font-sans">Administra la información de tu comercio o negocio requerida para la firma de facturas electrónicas y emisión de comprobantes autorizados.</p>
+                <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-facturacion">{{ t('fiscal_data') }}</h1>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('fiscal_desc') }}</p>
               </div>
               <!-- Status Badge -->
               <div class="flex items-center gap-2 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100 shadow-xs shrink-0 select-none">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Configuración Fiscal Activa</span>
+                <span>{{ t('active_fiscal') }}</span>
               </div>
             </div>
 
@@ -252,8 +427,8 @@
                   <mat-icon class="text-xl">receipt_long</mat-icon>
                 </div>
                 <div>
-                  <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Información para Emisión de Facturas</h2>
-                  <p class="text-[10px] text-zinc-400 font-normal">Completa los datos fiscales de tu empresa. Todos los campos se vuelven obligatorios si llenas al menos uno.</p>
+                  <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('fiscal_data') }}</h2>
+                  <p class="text-[10px] text-zinc-400 font-normal">{{ t('fiscal_desc') }}</p>
                 </div>
               </div>
 
@@ -262,92 +437,92 @@
                 
                 <!-- Nombre -->
                 <div class="space-y-1.5 md:col-span-2">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Nombre del Comercio / Razón Social</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_name') }}</span>
                   <input 
                     type="text"
                     formControlName="nombre"
-                    placeholder="Ej: Biia Dots S.A."
+                    [placeholder]="t('fiscal_name')"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
                     [class.border-red-500]="isFacturacionFieldInvalid('nombre')"
                     [class.border-zinc-200]="!isFacturacionFieldInvalid('nombre')"
-                    title="Nombre oficial de tu empresa o negocio registrado ante el ente fiscal."
+                    [title]="t('fiscal_name')"
                   />
                   @if (isFacturacionFieldInvalid('nombre')) {
-                    <p class="text-[10px] text-red-500 font-sans">El nombre fiscal es obligatorio si configuras la facturación.</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('fiscal_name_required') }}</p>
                   }
                 </div>
 
                 <!-- RUC -->
                 <div class="space-y-1.5">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">RUC / Identificación Fiscal</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_ruc') }}</span>
                   <input 
                     type="text"
                     formControlName="ruc"
-                    placeholder="Ej: 1792451551001"
+                    [placeholder]="t('fiscal_ruc')"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
                     [class.border-red-500]="isFacturacionFieldInvalid('ruc')"
                     [class.border-zinc-200]="!isFacturacionFieldInvalid('ruc')"
-                    title="Número de RUC de 13 dígitos para emisores de facturas en Ecuador."
+                    [title]="t('fiscal_ruc')"
                   />
                   @if (isFacturacionFieldInvalid('ruc')) {
-                    <p class="text-[10px] text-red-500 font-sans">El número de RUC es obligatorio y debe ser válido.</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('ruc_required') }}</p>
                   }
                 </div>
 
                 <!-- Teléfono -->
                 <div class="space-y-1.5">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Teléfono de Contacto</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_phone') }}</span>
                   <input 
                     type="text"
                     formControlName="telefono"
-                    placeholder="Ej: +593 98 765 4321"
+                    [placeholder]="t('fiscal_phone')"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
                     [class.border-red-500]="isFacturacionFieldInvalid('telefono')"
                     [class.border-zinc-200]="!isFacturacionFieldInvalid('telefono')"
-                    title="Prefijo internacional seguido de tu número de teléfono de soporte o contacto del comercio."
+                    [title]="t('fiscal_phone')"
                   />
                   @if (isFacturacionFieldInvalid('telefono')) {
-                    <p class="text-[10px] text-red-500 font-sans">El número de teléfono es obligatorio para los comprobantes.</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('phone_required') }}</p>
                   }
                 </div>
 
                 <!-- Dirección -->
                 <div class="space-y-1.5 md:col-span-2">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Dirección de Matriz / Establecimiento</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_address') }}</span>
                   <input 
                     type="text"
                     formControlName="direccion"
-                    placeholder="Ej: Av. Amazonas N21-14 y Patria, Edificio Plaza, Of. 302"
+                    [placeholder]="t('fiscal_address')"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
                     [class.border-red-500]="isFacturacionFieldInvalid('direccion')"
                     [class.border-zinc-200]="!isFacturacionFieldInvalid('direccion')"
-                    title="Dirección física completa declarada ante el SRI de tu casa matriz o punto de venta."
+                    [title]="t('fiscal_address')"
                   />
                   @if (isFacturacionFieldInvalid('direccion')) {
-                    <p class="text-[10px] text-red-500 font-sans">La dirección fiscal de matriz es obligatoria.</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('address_required') }}</p>
                   }
                 </div>
 
                 <!-- Correo -->
                 <div class="space-y-1.5">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Correo Electrónico (Notificaciones)</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_email') }}</span>
                   <input 
                     type="email"
                     formControlName="correo"
-                    placeholder="Ej: facturacion@tuempresa.com"
+                    [placeholder]="t('fiscal_email')"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
                     [class.border-red-500]="isFacturacionFieldInvalid('correo')"
                     [class.border-zinc-200]="!isFacturacionFieldInvalid('correo')"
-                    title="Dirección de correo a donde se enviarán las copias XML y PDF firmadas de tus documentos fiscales."
+                    [title]="t('fiscal_email')"
                   />
                   @if (isFacturacionFieldInvalid('correo')) {
-                    <p class="text-[10px] text-red-500 font-sans">Ingresa un correo electrónico con formato válido (ejemplo: usuario@dominio.com).</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('email_format_invalid') }}</p>
                   }
                 </div>
 
                 <!-- Contraseña con toggle -->
                 <div class="space-y-1.5">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Contraseña de Firma Electrónica (.p12)</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_pass') }}</span>
                   <div class="relative flex items-center">
                     <input 
                       [type]="showPassword() ? 'text' : 'password'"
@@ -356,25 +531,25 @@
                       class="w-full text-sm py-2.5 pl-4 pr-12 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono placeholder-zinc-400"
                       [class.border-red-500]="isFacturacionFieldInvalid('contrasena')"
                       [class.border-zinc-200]="!isFacturacionFieldInvalid('contrasena')"
-                      title="Contraseña o clave de seguridad asignada al momento de descargar tu certificado digital .p12."
+                      [title]="t('fiscal_pass')"
                     />
                     <button 
                       type="button"
                       (click)="togglePasswordVisibility()"
                       class="absolute right-3.5 text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer outline-none flex items-center"
-                      title="Alternar visibilidad de la contraseña"
+                      [title]="t('edit')"
                     >
                       <mat-icon class="text-lg leading-none">{{ showPassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
                     </button>
                   </div>
                   @if (isFacturacionFieldInvalid('contrasena')) {
-                    <p class="text-[10px] text-red-500 font-sans">La contraseña de firma .p12 es obligatoria.</p>
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('password_required') }}</p>
                   }
                 </div>
 
                 <!-- P12 File drag and drop space -->
                 <div class="space-y-1.5 md:col-span-2">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Archivo de Firma Autorizada (.p12)</span>
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_p12') }}</span>
                   
                   <div 
                     class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-7 transition-all cursor-pointer select-none min-h-[120px] focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
@@ -390,7 +565,7 @@
                     (drop)="onP12FileDropped($event)"
                     (click)="p12FileInput.click()"
                     (keydown.enter)="p12FileInput.click()"
-                    title="Arrastra o selecciona el archivo con tu firma digital protegida .p12 de facturación autorizada."
+                    [title]="t('fiscal_p12')"
                   >
                     <input 
                       type="file" 
@@ -410,14 +585,14 @@
 
                     @if (p12FileUploaded()) {
                       <span class="text-xs font-semibold text-emerald-800 font-mono tracking-tight">{{ p12FileName() }}</span>
-                      <span class="text-[10px] text-emerald-600 mt-1 font-sans">¡Certificado cargado con éxito! Haz clic para reemplazarlo si lo necesitas.</span>
+                      <span class="text-[10px] text-emerald-600 mt-1 font-sans">{{ t('p12_success') }}</span>
                     } @else {
-                      <span class="text-xs font-semibold text-zinc-700 font-sans">Subir Firma Electrónica (.p12)</span>
-                      <span class="text-[10px] text-zinc-400 mt-1 font-sans text-center">Haz clic para buscar tu firma firmada o arrastra el archivo directamente aquí.</span>
+                      <span class="text-xs font-semibold text-zinc-700 font-sans">{{ t('fiscal_p12') }}</span>
+                      <span class="text-[10px] text-zinc-400 mt-1 font-sans text-center">{{ t('p12_drag_drop') }}</span>
                     }
                   </div>
                   @if (isP12Invalid()) {
-                    <p class="text-[10px] text-red-500 font-sans mt-1">El archivo de firma electrónica (.p12) es obligatorio para firmar las facturas.</p>
+                    <p class="text-[10px] text-red-500 font-sans mt-1">{{ t('p12_required') }}</p>
                   }
                 </div>
 
@@ -427,7 +602,7 @@
               <div class="flex items-start gap-2 pt-4 border-t border-zinc-150">
                 <mat-icon class="text-base text-zinc-400 shrink-0 select-none">info_outline</mat-icon>
                 <p class="text-xs text-zinc-400 italic font-sans leading-relaxed">
-                  Estos datos serán usados para llamar al API del SRI para la facturación electrónica. Asegura que la clave corresponda exactamente al archivo .p12 para evitar fallos de conexión.
+                  {{ t('sri_api_notice') }}
                 </p>
               </div>
 
@@ -444,7 +619,7 @@
                 title="Haga clic para validar, guardar sus datos fiscales y continuar a la pestaña de Integraciones."
               >
                 <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
-                <span>Guardar / siguiente</span>
+                <span>{{ t('save_next') }}</span>
               </button>
               
               <button 
@@ -455,7 +630,7 @@
                 title="Haga clic para validar, guardar la configuración fiscal y retornar inmediatamente a la pantalla del panel principal."
               >
                 <mat-icon class="text-sm shrink-0">save</mat-icon>
-                <span>Guardar y salir</span>
+                <span>{{ t('save_exit') }}</span>
               </button>
 
             </div>
@@ -467,13 +642,13 @@
           
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
             <div>
-              <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-integrations">Centro de Integraciones</h1>
-              <p class="text-xs text-zinc-400 mt-1 font-sans">Configure las credenciales de las plataformas externas para automatizar flujos de verificación y avisos.</p>
+              <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-integrations">{{ t('integrations_title') }}</h1>
+              <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('integrations_desc') }}</p>
             </div>
             <!-- Trust badge for security -->
             <div class="flex items-center gap-2 text-[11px] font-semibold text-zinc-500 bg-zinc-100 px-3.5 py-2 rounded-xl border border-zinc-200/60 shadow-xs shrink-0 select-none">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Cifrado de Extremo a Extremo (TLS 1.3)</span>
+              <span>{{ t('encrypted_tls') }}</span>
             </div>
           </div>
 
@@ -530,15 +705,15 @@
                     <mat-icon>chat_bubble</mat-icon>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-zinc-800">WhatsApp Business Cloud API</h2>
-                    <p class="text-xs text-zinc-400 mt-0.5">Permite automatizaciones de mensajería para alertas en tiempo de ejecución.</p>
+                    <h2 class="text-base font-bold text-zinc-800">{{ t('whatsapp_cloud_api') }}</h2>
+                    <p class="text-xs text-zinc-400 mt-0.5">{{ t('whatsapp_api_desc') }}</p>
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <!-- Selector de Código de País + Teléfono -->
                   <div class="space-y-1.5">
-                    <label for="meta-phone-code" class="block text-xs font-semibold text-zinc-500 uppercase">Número de Envío</label>
+                    <label for="meta-phone-code" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('sending_number') }}</label>
                     <div class="flex gap-2">
                       <div class="relative w-1/3 shrink-0">
                         <select 
@@ -562,7 +737,7 @@
                         title="Ingrese el número de teléfono celular remitente (sin el cero inicial)."
                       />
                     </div>
-                    <p class="text-[10px] text-zinc-400">Guía: Seleccione bandera y digite el número.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('phone_guide') }}</p>
                   </div>
 
                   <!-- ID de Teléfono (Análisis del sistema: Esencial para conectar la API Cloud) -->
@@ -576,7 +751,7 @@
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
                       title="Identificador único del número telefónico dentro del Business Manager de Meta."
                     />
-                    <p class="text-[10px] text-zinc-400">ID del recurso celular dentro de Meta.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('phone_resource_id') }}</p>
                   </div>
 
                   <!-- WhatsApp Business Account ID (WABA ID - Esencial) -->
@@ -590,12 +765,12 @@
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
                       title="ID de la cuenta comercial de WhatsApp (WABA ID) asociada."
                     />
-                    <p class="text-[10px] text-zinc-400">ID de administrador comercial WABA.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('waba_id_desc') }}</p>
                   </div>
 
                   <!-- API Key / Interfaz programación -->
                   <div class="space-y-1.5 md:col-span-2">
-                    <label for="meta-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">Clave API Key de la Interfaz</label>
+                    <label for="meta-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('interface_api_key') }}</label>
                     <input 
                       id="meta-api-key"
                       type="password" 
@@ -604,12 +779,12 @@
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
                       title="Llave de autenticación para las transacciones seguras de webhooks externos."
                     />
-                    <p class="text-[10px] text-zinc-400">API Key utilizada para control y validación de autenticidad.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('api_key_desc') }}</p>
                   </div>
 
                   <!-- Token de Acceso Permanente (Tamaño mediano) -->
                   <div class="space-y-1.5 md:col-span-2">
-                    <label for="meta-token" class="block text-xs font-semibold text-zinc-500 uppercase">Token de Acceso Permanente (System User Token)</label>
+                    <label for="meta-token" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('system_user_token') }}</label>
                     <textarea 
                       id="meta-token"
                       rows="3"
@@ -618,7 +793,7 @@
                       class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 transition-all font-mono"
                       title="Pegue el token de acceso permanente del usuario del sistema sin caducidad de Meta Developers."
                     ></textarea>
-                    <p class="text-[10px] text-zinc-400">Garantiza el correcto tráfico del webhook permanente sin expirar.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('meta_token_guide') }}</p>
                   </div>
                 </div>
               </div>
@@ -633,52 +808,52 @@
                   </div>
                   <div>
                     <h2 class="text-base font-bold text-zinc-800">Google AI Studio Engine (Gemini)</h2>
-                    <p class="text-xs text-zinc-400 mt-0.5">Motor de procesamiento cognitivo para validación de montos, OCR y firmas cruzadas.</p>
+                    <p class="text-xs text-zinc-400 mt-0.5">{{ t('cognitive_engine_desc') }}</p>
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <!-- API Key -->
                   <div class="space-y-1.5 md:col-span-2">
-                    <label for="gemini-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">Clave Secreta de API Key (Google AI Studio)</label>
+                    <label for="gemini-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('integrations_secret_key') }} (Google AI Studio)</label>
                     <input 
                       id="gemini-api-key"
                       type="password" 
                       formControlName="geminiApiKey"
                       placeholder="AIzaSy..."
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono"
-                      title="Introduzca la clave API secreta generada en Google AI Studio para usar los servicios cognitivos inteligentes."
+                      [title]="t('integrations_secret_key')"
                     />
-                    <p class="text-[10px] text-zinc-400">Esta clave se almacena en el backend de forma segura y nunca se expone en conexiones públicas.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('api_key_secure_notice') }}</p>
                   </div>
 
                   <!-- Token -->
                   <div class="space-y-1.5">
-                    <label for="gemini-token" class="block text-xs font-semibold text-zinc-500 uppercase">Identificador de Acceso / Token</label>
+                    <label for="gemini-token" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('integrations_access_id') }}</label>
                     <input 
                       id="gemini-token"
                       type="text" 
                       formControlName="geminiToken"
                       placeholder="token-gcp-lc"
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono"
-                      title="Token opcional o identificador de proyecto para enrutamiento y control de cuotas corporativas."
+                      [title]="t('integrations_access_id')"
                     />
-                    <p class="text-[10px] text-zinc-400">Identificador para la trazabilidad de peticiones de IA.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('traceability_id') }}</p>
                   </div>
 
                   <!-- Model Engine -->
                   <div class="space-y-1.5">
-                    <label for="gemini-model" class="block text-xs font-semibold text-zinc-500 uppercase">Modelo Preferido</label>
+                    <label for="gemini-model" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('preferred_model') }}</label>
                     <select 
                       id="gemini-model"
                       formControlName="geminiModel"
                       class="w-full text-xs py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white transition-all cursor-pointer font-sans"
-                      title="Seleccione el modelo cognitivo matemático para rendimiento balanceado."
+                      [title]="t('preferred_model')"
                     >
-                      <option value="gemini-2.1-flash">Gemini 2.1 Flash (Óptimo, Rápido y Eficiente)</option>
-                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (Razonamiento Complejo y Especializado)</option>
+                      <option value="gemini-2.1-flash">Gemini 2.1 Flash ({{ t('active') }})</option>
+                      <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                     </select>
-                    <p class="text-[10px] text-zinc-400 font-sans">Gemini 2.1 Flash es ideal para digitalización OCR instantánea.</p>
+                    <p class="text-[10px] text-zinc-400 font-sans">{{ t('model_performance_notice') }}</p>
                   </div>
                 </div>
               </div>
@@ -690,7 +865,7 @@
                 <!-- Visually elegant lock watermark -->
                 <div class="absolute right-4 top-4 bg-rose-50 text-rose-800 text-[10px] font-bold px-3 py-1 rounded-full border border-rose-100 flex items-center gap-1.5 select-none animate-pulse">
                   <mat-icon class="text-xs">lock</mat-icon>
-                  <span>Módulo Desactivado por Seguridad</span>
+                  <span>{{ t('module_locked_security') }}</span>
                 </div>
 
                 <div class="flex items-start gap-3 pb-4 border-b border-zinc-200">
@@ -698,88 +873,88 @@
                     <mat-icon>account_balance</mat-icon>
                   </div>
                   <div>
-                    <h2 class="text-base font-bold text-zinc-700">SRI Facturación Electrónica (Ecuador)</h2>
-                    <p class="text-xs text-zinc-400 mt-0.5">Automatización de emisión de comprobantes autorizados y XML.</p>
+                    <h2 class="text-base font-bold text-zinc-700">{{ t('electronic_billing_ecuador') }}</h2>
+                    <p class="text-xs text-zinc-400 mt-0.5">{{ t('electronic_billing_desc') }}</p>
                   </div>
                 </div>
 
                 <!-- Ambiente Switches (Both must appear disabled & locked by default indicator) -->
                 <div class="space-y-3">
-                  <span class="block text-xs font-semibold text-zinc-500 uppercase">Servicios Web SRI (Bloqueados temporalmente)</span>
+                  <span class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('sri_web_services_locked') }}</span>
                   <div class="flex flex-wrap gap-5">
                     
                     <div class="flex items-center gap-2 px-3 py-2 bg-rose-50/55 rounded-xl border border-rose-100/60 select-none opacity-50 cursor-not-allowed">
                       <div class="w-8 h-4 bg-rose-200 rounded-full relative transition-all">
                         <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-rose-600 rounded-full"></div>
                       </div>
-                      <span class="text-xs font-semibold text-rose-700">Pruebas</span>
+                      <span class="text-xs font-semibold text-rose-700">{{ t('testing_env') }}</span>
                     </div>
 
                     <div class="flex items-center gap-2 px-3 py-2 bg-rose-50/55 rounded-xl border border-rose-100/60 select-none opacity-50 cursor-not-allowed">
                       <div class="w-8 h-4 bg-rose-200 rounded-full relative transition-all">
                         <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-rose-600 rounded-full"></div>
                       </div>
-                      <span class="text-xs font-semibold text-rose-700">Producción</span>
+                      <span class="text-xs font-semibold text-rose-700">{{ t('production_env') }}</span>
                     </div>
 
                   </div>
-                  <p class="text-[10px] text-zinc-400">Ambos interruptores están inactivos por defecto para evitar facturaciones erróneas sin firma digital homologada.</p>
+                  <p class="text-[10px] text-zinc-400">{{ t('sri_switch_notice') }}</p>
                 </div>
 
                 <!-- Fields for SRI Facturación Electrónica (Correct analyzed fields added as requested) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 opacity-60">
                   <!-- RUC Identificación (Correct addition) -->
                   <div class="space-y-1.5">
-                    <label for="sri-ruc" class="block text-xs font-semibold text-zinc-400 uppercase">RUC Comercial</label>
+                    <label for="sri-ruc" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('fiscal_ruc_abbr') }}</label>
                     <input 
                       id="sri-ruc"
                       type="text" 
                       formControlName="sriRuc"
                       placeholder="1791234567001"
                       class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
-                      title="Registro Único de Contribuyente habilitado para emitir firmas digitales en Ecuador."
+                      [title]="t('fiscal_ruc_abbr')"
                     />
                   </div>
 
                   <!-- Firma electrónica password (Correct addition) -->
                   <div class="space-y-1.5">
-                    <label for="sri-firma" class="block text-xs font-semibold text-zinc-400 uppercase">Clave de Firma Digital (.p12)</label>
+                    <label for="sri-firma" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('digital_signature_pass') }}</label>
                     <input 
                       id="sri-firma"
                       type="password" 
                       formControlName="sriFirmaPassword"
                       placeholder="••••••••"
                       class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
-                      title="Contraseña del archivo de certificado de firma digital que autoriza el SRI."
+                      [title]="t('digital_signature_pass')"
                     />
                   </div>
 
                   <!-- Token (mediano) -->
                   <div class="space-y-1.5">
-                    <label for="sri-token" class="block text-xs font-semibold text-zinc-400 uppercase">Token Proveedor / Clave de Acceso</label>
+                    <label for="sri-token" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('provider_token_access') }}</label>
                     <input 
                       id="sri-token"
                       type="text" 
                       formControlName="sriToken"
                       placeholder="sri-tok-987"
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
-                      title="Token transaccional intermedio para webhooks del SRI."
+                      [title]="t('provider_token_access')"
                     />
-                    <p class="text-[10px] text-zinc-400">Identificador intermedio del emisor local.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('traceability_id') }}</p>
                   </div>
 
                   <!-- API Key (largo) -->
                   <div class="space-y-1.5">
-                    <label for="sri-api-key" class="block text-xs font-semibold text-zinc-400 uppercase">API Key (Servicios Web SRI)</label>
+                    <label for="sri-api-key" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('sri_web_services_api_key') }}</label>
                     <input 
                       id="sri-api-key"
                       type="password" 
                       formControlName="sriApiKey"
                       placeholder="••••••••••••••••••••••••••••••••"
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
-                      title="Clave secreta para conexión TLS directa a los servidores web autorizados del SRI."
+                      [title]="t('sri_web_services_api_key')"
                     />
-                    <p class="text-[10px] text-zinc-400">Clave de seguridad del web service de recepción y autorización SRI.</p>
+                    <p class="text-[10px] text-zinc-400">{{ t('sri_security_key_desc') }}</p>
                   </div>
                 </div>
               </div>
@@ -795,10 +970,10 @@
               (click)="saveAndNext()"
               class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs"
               id="btn-save-next"
-              title="Guarda la información de los campos del paso actual y continúa al próximo submenú."
+              [title]="t('save_next')"
             >
               <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
-              <span>Guardar / siguiente</span>
+              <span>{{ t('save_next') }}</span>
             </button>
             
             <button 
@@ -806,10 +981,10 @@
               (click)="saveAndExit()"
               class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs"
               id="btn-save-exit"
-              title="Guarda de forma integral y vuelve al Dashboard principal."
+              [title]="t('save_exit')"
             >
               <mat-icon class="text-sm shrink-0">save</mat-icon>
-              <span>Guardar y salir</span>
+              <span>{{ t('save_exit') }}</span>
             </button>
 
           </div>
@@ -823,13 +998,13 @@
             <!-- Header section -->
             <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
               <div>
-                <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-negocio">Configuración Comercial y Monetización</h1>
-                <p class="text-xs text-zinc-400 mt-1 font-sans">Administra los parámetros de cobro, planes de saldos, sistemas de recompensas y pasarelas de pago disponibles.</p>
+                <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-negocio">{{ t('biz_title') }}</h1>
+                <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('biz_desc') }}</p>
               </div>
               <!-- Status Badge -->
               <div class="flex items-center gap-2 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100 shadow-xs shrink-0 select-none">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Configuración de Negocio en Tiempo Real</span>
+                <span>{{ t('biz_title') }}</span>
               </div>
             </div>
 
@@ -846,32 +1021,32 @@
                       <mat-icon class="text-xl">payments</mat-icon>
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Consultas y Precios Base</h2>
-                      <p class="text-[10px] text-zinc-400 font-normal">Configura el saldo de cortesía gratuito y el coste básico de cada verificación.</p>
+                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('biz_base_prices_title') }}</h2>
+                      <p class="text-[10px] text-zinc-400 font-normal">{{ t('biz_base_prices_desc') }}</p>
                     </div>
                   </div>
 
                   <div class="space-y-6 pt-2">
                     <!-- Line 1: Consultas gratis -->
                     <div class="flex flex-col md:flex-row md:items-center gap-3 text-sm text-zinc-700 font-sans" title="Número de consultas gratuitas de cortesía asignadas mensualmente a los usuarios nuevos o recurrentes.">
-                      <span class="font-medium shrink-0">Consultas gratis al mes:</span>
+                      <span class="font-medium shrink-0">{{ t('biz_free_consults_month') }}</span>
                       <div class="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
                         <input 
                           type="number" 
                           formControlName="freeConsultations"
                           class="w-20 text-center text-sm font-semibold py-2 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
-                          title="Establece cuántas consultas se acreditan de forma gratuita mensualmente (Por defecto: 5)"
+                          [title]="t('biz_free_consults_month')"
                           min="0"
                         />
                         <span class="text-xs text-zinc-400 font-normal bg-zinc-50 px-3 py-2 rounded-xl border border-zinc-100 italic shrink-0 md:shrink">
-                          Renovables cada día 1 del mes y no acumulables.
+                          {{ t('biz_free_consults_renovables') }}
                         </span>
                       </div>
                     </div>
 
                     <!-- Line 2: Valor de la consulta pagada -->
                     <div class="flex flex-col md:flex-row md:items-center gap-3 text-sm text-zinc-700 font-sans" title="Costo unitario en USD cobrado a los usuarios que realicen consultas de cheques una vez agotadas sus cortesías gratis.">
-                      <span class="font-medium shrink-0">Valor de la consulta pagada:</span>
+                      <span class="font-medium shrink-0">{{ t('biz_paid_consult_value') }}</span>
                       <div class="relative flex items-center max-w-xs">
                         <span class="absolute left-3.5 text-zinc-400 text-xs font-semibold font-mono">$</span>
                         <input 
@@ -879,7 +1054,7 @@
                           step="0.01"
                           formControlName="paidConsultationValue"
                           class="w-36 pl-8 pr-3 text-sm font-semibold py-2 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
-                          title="Precio de consulta individual en USD (Por defecto: 0.50)"
+                          [title]="t('biz_paid_consult_value')"
                           min="0"
                         />
                       </div>
@@ -894,35 +1069,35 @@
                       <mat-icon class="text-xl">emoji_events</mat-icon>
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Sistema de Recompensas</h2>
-                      <p class="text-[10px] text-zinc-400 font-normal">Establece incentivos para premiar e incentivar a los usuarios que alimentan los estados con veracidad.</p>
+                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('biz_rewards_title') }}</h2>
+                      <p class="text-[10px] text-zinc-400 font-normal">{{ t('biz_rewards_desc') }}</p>
                     </div>
                   </div>
 
                   <!-- Sentence with beautiful inline inputs -->
                   <div class="bg-zinc-50/40 p-5 rounded-2xl border border-zinc-200/50 space-y-1.5 leading-relaxed text-sm text-zinc-700 font-sans">
                     <div class="flex flex-wrap items-center gap-2" title="Regla de gamificación: premia a los usuarios que mantienen un alto índice de confirmaciones de datos.">
-                      <span>Ofrece</span>
+                      <span>{{ t('biz_reward_sentence_1') }}</span>
                       <input 
                         type="number" 
                         formControlName="rewardFreeConsultations"
                         class="w-16 text-center text-sm font-bold py-1.5 px-2 rounded-lg border border-zinc-200 focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none transition-all font-mono"
-                        title="Premio en consultas gratuitas habilitadas al mes si se alcanza la meta de respuestas válidas de confirmación."
+                        [title]="t('biz_reward_sentence_1')"
                         min="0"
                       />
-                      <span>consultas gratis al mes si mantiene +</span>
+                      <span>{{ t('biz_reward_sentence_2') }}</span>
                       <div class="relative flex items-center">
                         <input 
                           type="number" 
                           formControlName="rewardPercentage"
                           class="w-16 pr-5 text-center text-sm font-bold py-1.5 rounded-lg border border-zinc-200 focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none transition-all font-mono"
-                          title="Porcentaje de respuesta verídica requerido para activar las consultas de cortesía del incentivo."
+                          [title]="t('biz_reward_sentence_2')"
                           min="0"
                           max="100"
                         />
                         <span class="absolute right-1.5 text-zinc-400 text-xs font-semibold">%</span>
                       </div>
-                      <span>de sus consultas con respuestas.</span>
+                      <span>{{ t('biz_reward_sentence_3') }}</span>
                     </div>
                   </div>
                 </div>
@@ -939,8 +1114,8 @@
                       <mat-icon class="text-xl">stars</mat-icon>
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Planes de Saldos</h2>
-                      <p class="text-[10px] text-zinc-400 font-normal">Ofrece saldos precargados fijos para incentivar recargas mayores y simplificar pagos.</p>
+                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('biz_plans_title') }}</h2>
+                      <p class="text-[10px] text-zinc-400 font-normal">{{ t('biz_plans_desc') }}</p>
                     </div>
                   </div>
 
@@ -951,16 +1126,16 @@
                       <input 
                         type="text" 
                         formControlName="newPlanInput"
-                        placeholder="15.00"
+                        [placeholder]="t('biz_new_plan_placeholder')"
                         class="w-full pl-8 pr-4 text-sm font-semibold py-2.5 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
-                        title="Escribe un valor de plan (Ej: $15.00) y pulsa el botón '+' para añadirlo dinámicamente."
+                        [title]="t('biz_plans_title')"
                       />
                     </div>
                     <button 
                       type="button"
                       (click)="addSaldoPlan()"
                       class="shrink-0 w-11 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center border border-emerald-700 shadow-[0_2px_0_0_#047857] hover:shadow-[0_2px_0_0_#065f46] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer outline-none"
-                      title="Agregar nuevo plan de saldo recarga a la lista"
+                      [title]="t('add')"
                     >
                       <mat-icon class="text-lg">add</mat-icon>
                     </button>
@@ -968,7 +1143,7 @@
 
                   <!-- Configured planes display -->
                   <div class="space-y-2">
-                    <span class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Planes de Saldos Configurados:</span>
+                    <span class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{{ t('biz_configured_plans') }}</span>
                     <div class="flex flex-wrap gap-2.5" id="saldo-planes-badges">
                       @for (plan of saldoPlanes(); track $index) {
                         <div class="inline-flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200/80 border border-zinc-200 text-zinc-800 py-1.5 pl-3.5 pr-2 rounded-xl text-xs font-bold transition-all select-none">
@@ -977,13 +1152,13 @@
                             type="button" 
                             (click)="removeSaldoPlan($index)" 
                             class="text-zinc-400 hover:text-red-500 transition-all cursor-pointer outline-none" 
-                            title="Eliminar este plan de recarga"
+                            [title]="t('delete')"
                           >
                             <mat-icon class="text-sm shrink-0">close</mat-icon>
                           </button>
                         </div>
                       } @empty {
-                        <p class="text-xs text-zinc-400 italic font-mono py-1">No hay planes fijos configurados. Agrega uno arriba.</p>
+                        <p class="text-xs text-zinc-400 italic font-mono py-1">{{ t('biz_no_plans') }}</p>
                       }
                     </div>
                   </div>
@@ -996,8 +1171,8 @@
                       <mat-icon class="text-xl">link</mat-icon>
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Pasarelas y Enlaces de Pago</h2>
-                      <p class="text-[10px] text-zinc-400 font-normal">Habilita diversas opciones de cobro. Los clientes verán estas opciones al recargar saldo.</p>
+                      <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('biz_gateways_title') }}</h2>
+                      <p class="text-[10px] text-zinc-400 font-normal">{{ t('biz_gateways_desc') }}</p>
                     </div>
                   </div>
 
@@ -1008,12 +1183,12 @@
                         
                         <!-- Header with index and remove button -->
                         <div class="flex items-center justify-between mb-3">
-                          <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Pasarela de pago #{{ $index + 1 }}</span>
+                          <span class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">{{ t('biz_gateway_index') }}{{ $index + 1 }}</span>
                           <button 
                             type="button" 
                             (click)="removePaymentLink($index)"
                             class="text-zinc-400 hover:text-red-500 transition-all cursor-pointer outline-none cursor-pointer"
-                            title="Remover esta opción de pago"
+                            [title]="t('biz_gateway_remove')"
                           >
                             <mat-icon class="text-base shrink-0">delete</mat-icon>
                           </button>
@@ -1022,26 +1197,26 @@
                         <!-- Row spacing -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                           <div class="space-y-1.5">
-                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">Nombre de Pasarela / Entidad</span>
+                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">{{ t('biz_gateway_name_label') }}</span>
                             <input 
                               type="text" 
                               [value]="link.name" 
                               (input)="updatePaymentLinkName($index, $any($event.target).value)"
-                              placeholder="Ej: Banco Pichincha, PayPal..."
+                              [placeholder]="t('biz_gateway_name_placeholder')"
                               class="w-full text-xs py-2 px-3 rounded-lg border border-zinc-200 focus:outline-none focus:border-emerald-500 transition-all"
-                              title="Nombre identificativo de la pasarela que verá el usuario (Ej: PayPal, Banco del Austro...)"
+                              [title]="t('biz_gateway_name_label')"
                             />
                           </div>
                           
                           <div class="space-y-1.5">
-                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">Enlace de Cobro / URL de Pago</span>
+                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">{{ t('biz_gateway_url_label') }}</span>
                             <input 
                               type="text" 
                               [value]="link.url" 
                               (input)="updatePaymentLinkUrl($index, $any($event.target).value)"
-                              placeholder="Ej: https://pay.pichincha.com/..."
+                              [placeholder]="t('biz_gateway_url_placeholder')"
                               class="w-full text-xs py-2 px-3 rounded-lg border border-zinc-200 focus:outline-none focus:border-emerald-500 transition-all font-mono"
-                              title="Enlace para que el usuario sea redirigido y proceda con el cobro (URL de pago segura)"
+                              [title]="t('biz_gateway_url_label')"
                             />
                           </div>
                         </div>
@@ -1056,10 +1231,10 @@
                       type="button" 
                       (click)="addPaymentLink()"
                       class="w-full flex items-center justify-center gap-2 bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 font-semibold py-3 px-4 rounded-xl border border-zinc-200 shadow-sm active:translate-y-[1px] transition-all cursor-pointer outline-none text-xs"
-                      title="Haz clic para generar otro par de campos vacíos para añadir otra pasarela o cuenta bancaria."
+                      [title]="t('biz_add_another_gateway')"
                     >
                       <mat-icon class="text-base">add_circle</mat-icon>
-                      <span>Añadir otro enlace de pago</span>
+                      <span>{{ t('biz_add_another_gateway') }}</span>
                     </button>
                   </div>
 
@@ -1077,10 +1252,10 @@
                 (click)="saveAndNext()"
                 class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs outline-none"
                 id="btn-negocio-save-next"
-                title="Guarda la configuración de precios y pasa visualmente a la siguiente pestaña del menú (IA)."
+                [title]="t('save_next')"
               >
                 <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
-                <span>Guardar / siguiente</span>
+                <span>{{ t('save_next') }}</span>
               </button>
               
               <button 
@@ -1088,10 +1263,10 @@
                 (click)="saveAndExit()"
                 class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs outline-none"
                 id="btn-negocio-save-exit"
-                title="Guarda la configuración y de forma integral vuelve al Dashboard principal."
+                [title]="t('save_exit')"
               >
                 <mat-icon class="text-sm shrink-0">save</mat-icon>
-                <span>Guardar y salir</span>
+                <span>{{ t('save_exit') }}</span>
               </button>
 
             </div>
@@ -1104,13 +1279,13 @@
           
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
             <div>
-              <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-ia">Sala de Control de Inteligencia Artificial</h1>
-              <p class="text-xs text-zinc-400 mt-1 font-sans">Configura las instrucciones de comportamiento, análisis de datos y venta de membresías que leerá el agente de Inteligencia Artificial.</p>
+              <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-ia">{{ t('ia_title') }}</h1>
+              <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('ia_desc') }}</p>
             </div>
             <!-- Status Badge -->
             <div class="flex items-center gap-2 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100 shadow-xs shrink-0 select-none">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Agente de Inteligencia Artificial Activo</span>
+              <span>{{ t('ia_title') }}</span>
             </div>
           </div>
 
@@ -1122,11 +1297,11 @@
               [class]="activeIaSubTab() === 'usuarios' 
                 ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs' 
                 : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
-              title="Instrucciones con los usuarios"
+              [title]="t('ia_subtab_behavior')"
               id="subtab-ia-usuarios"
             >
               <mat-icon class="text-base">person</mat-icon>
-              <span>Comportamiento con Usuarios</span>
+              <span>{{ t('ia_subtab_behavior') }}</span>
             </button>
 
             <button 
@@ -1135,11 +1310,11 @@
               [class]="activeIaSubTab() === 'banco' 
                 ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs' 
                 : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
-              title="Instrucciones Para el análisis de datos"
+              [title]="t('ia_subtab_analysis')"
               id="subtab-ia-banco"
             >
               <mat-icon class="text-base">account_balance</mat-icon>
-              <span>Análisis de Datos</span>
+              <span>{{ t('ia_subtab_analysis') }}</span>
             </button>
 
             <button 
@@ -1148,11 +1323,11 @@
               [class]="activeIaSubTab() === 'ventas' 
                 ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs' 
                 : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
-              title="Instrucciones Para ventas de membresías"
+              [title]="t('ia_subtab_sales')"
               id="subtab-ia-ventas"
             >
               <mat-icon class="text-base">handshake</mat-icon>
-              <span>Venta de Membresías</span>
+              <span>{{ t('ia_subtab_sales') }}</span>
             </button>
           </div>
 
@@ -1166,8 +1341,8 @@
                     <mat-icon class="text-xl">person</mat-icon>
                   </div>
                   <div>
-                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-user-instructions">Instrucciones con los usuarios</h2>
-                    <p class="text-[10px] text-zinc-400 font-normal">Establece el tono, nivel de empatía y límites del agente al comunicarse de manera directa con los usuarios.</p>
+                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-user-instructions">{{ t('ia_behavior_title') }}</h2>
+                    <p class="text-[10px] text-zinc-400 font-normal">{{ t('ia_behavior_desc') }}</p>
                   </div>
                 </div>
 
@@ -1177,7 +1352,7 @@
                     id="ia-user-textarea"
                     [value]="iaUserInstructions()"
                     (input)="iaUserInstructions.set($any($event.target).value)"
-                    placeholder="Escribe las instrucciones aquí..."
+                    [placeholder]="t('ia_placeholder')"
                     class="w-full flex-grow text-sm py-4 px-5 rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans leading-relaxed resize-none overflow-y-auto bg-zinc-50/30"
                   ></textarea>
                 </div>
@@ -1191,8 +1366,8 @@
                     <mat-icon class="text-xl">account_balance</mat-icon>
                   </div>
                   <div>
-                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-analysis-instructions">Instrucciones Para el análisis de datos</h2>
-                    <p class="text-[10px] text-zinc-400 font-normal">Define reglas de puntuación, alertas de cuentas cerradas, umbrales de capital y comportamiento bancario.</p>
+                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-analysis-instructions">{{ t('ia_analysis_title') }}</h2>
+                    <p class="text-[10px] text-zinc-400 font-normal">{{ t('ia_analysis_desc') }}</p>
                   </div>
                 </div>
 
@@ -1202,7 +1377,7 @@
                     id="ia-analysis-textarea"
                     [value]="iaAnalysisInstructions()"
                     (input)="iaAnalysisInstructions.set($any($event.target).value)"
-                    placeholder="Escribe las instrucciones aquí..."
+                    [placeholder]="t('ia_placeholder')"
                     class="w-full flex-grow text-sm py-4 px-5 rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans leading-relaxed resize-none overflow-y-auto bg-zinc-50/30"
                   ></textarea>
                 </div>
@@ -1216,8 +1391,8 @@
                     <mat-icon class="text-xl">handshake</mat-icon>
                   </div>
                   <div>
-                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-sales-instructions">Instrucciones Para ventas de membresías</h2>
-                    <p class="text-[10px] text-zinc-400 font-normal">Establece incentivos, códigos de facturación en observaciones, manejo de posibles estafas y ofertas de saldo.</p>
+                    <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase" id="title-ia-sales-instructions">{{ t('ia_sales_title') }}</h2>
+                    <p class="text-[10px] text-zinc-400 font-normal">{{ t('ia_sales_desc') }}</p>
                   </div>
                 </div>
 
@@ -1227,7 +1402,7 @@
                     id="ia-sales-textarea"
                     [value]="iaSalesInstructions()"
                     (input)="iaSalesInstructions.set($any($event.target).value)"
-                    placeholder="Escribe las instrucciones aquí..."
+                    [placeholder]="t('ia_placeholder')"
                     class="w-full flex-grow text-sm py-4 px-5 rounded-2xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans leading-relaxed resize-none overflow-y-auto bg-zinc-50/30"
                   ></textarea>
                 </div>
@@ -1244,10 +1419,10 @@
               (click)="saveAndNext()"
               class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs outline-none"
               id="btn-ia-save-next"
-              title="Guarda la información de los campos del paso actual y pasa visualmente a la siguiente sub-pestaña."
+              [title]="t('save_next')"
             >
               <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
-              <span>Guardar / siguiente</span>
+              <span>{{ t('save_next') }}</span>
             </button>
             
             <button 
@@ -1255,10 +1430,10 @@
               (click)="saveAndExit()"
               class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs outline-none"
               id="btn-ia-save-exit"
-              title="Guarda de forma integral y vuelve al Dashboard principal."
+              [title]="t('save_exit')"
             >
               <mat-icon class="text-sm shrink-0">save</mat-icon>
-              <span>Guardar y salir</span>
+              <span>{{ t('save_exit') }}</span>
             </button>
 
           </div>
@@ -1272,9 +1447,9 @@
               <div>
                 <h1 class="text-2xl font-bold text-zinc-900 tracking-tight flex items-center gap-2">
                   <mat-icon class="text-emerald-600 shrink-0">account_balance</mat-icon>
-                  <span>Catálogo de Bancos</span>
+                  <span>{{ t('banks_title') }}</span>
                 </h1>
-                <p class="text-xs text-zinc-400 mt-0.5 font-normal">Directorio de instituciones financieras y scoring de confirmación de cuentas en Ecuador.</p>
+                <p class="text-xs text-zinc-400 mt-0.5 font-normal">{{ t('banks_desc') }}</p>
               </div>
               
               <div class="flex flex-wrap items-center gap-3">
@@ -1319,7 +1494,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Nombre</span>
+                          <span>{{ t('institution') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'name'" [class.text-zinc-300]="bancosSortField() !== 'name'">
                             {{ bancosSortField() === 'name' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1330,7 +1505,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Activo desde</span>
+                          <span>{{ t('active_since') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'activeSince'" [class.text-zinc-300]="bancosSortField() !== 'activeSince'">
                             {{ bancosSortField() === 'activeSince' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1341,7 +1516,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Cuentas en sistema</span>
+                          <span>{{ t('acc_number') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'accountsCount'" [class.text-zinc-300]="bancosSortField() !== 'accountsCount'">
                             {{ bancosSortField() === 'accountsCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1352,7 +1527,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Consultas</span>
+                          <span>{{ t('chart_queries') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'queriesCount'" [class.text-zinc-300]="bancosSortField() !== 'queriesCount'">
                             {{ bancosSortField() === 'queriesCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1363,7 +1538,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Última consulta</span>
+                          <span>{{ t('last_query') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'lastQuery'" [class.text-zinc-300]="bancosSortField() !== 'lastQuery'">
                             {{ bancosSortField() === 'lastQuery' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1374,14 +1549,14 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>% Aceptación</span>
+                          <span>% {{ t('Dashboard') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosSortField() !== 'acceptanceRate'">
                             {{ bancosSortField() === 'acceptanceRate' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th class="px-6 py-4 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
-                        Acciones
+                        {{ t('actions') }}
                       </th>
                     </tr>
                   </thead>
@@ -1547,7 +1722,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Cuenta</span>
+                          <span>{{ t('acc_number') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'accountNumber'" [class.text-zinc-300]="bancosAccountSortField() !== 'accountNumber'">
                             {{ bancosAccountSortField() === 'accountNumber' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1558,7 +1733,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Activo desde</span>
+                          <span>{{ t('active_since') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'activeSince'" [class.text-zinc-300]="bancosAccountSortField() !== 'activeSince'">
                             {{ bancosAccountSortField() === 'activeSince' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1569,7 +1744,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Consultas en el sistema</span>
+                          <span>{{ t('chart_queries') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'queriesCount'" [class.text-zinc-300]="bancosAccountSortField() !== 'queriesCount'">
                             {{ bancosAccountSortField() === 'queriesCount' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1580,7 +1755,7 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>Última consulta</span>
+                          <span>{{ t('last_query') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'lastQuery'" [class.text-zinc-300]="bancosAccountSortField() !== 'lastQuery'">
                             {{ bancosAccountSortField() === 'lastQuery' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
@@ -1591,14 +1766,14 @@
                         class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>% Aceptación</span>
+                          <span>% {{ t('Dashboard') }}</span>
                           <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosAccountSortField() !== 'acceptanceRate'">
                             {{ bancosAccountSortField() === 'acceptanceRate' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th class="px-6 py-4 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
-                        Acciones
+                        {{ t('actions') }}
                       </th>
                     </tr>
                   </thead>
@@ -2344,32 +2519,32 @@
                           @if (query.status === 'Cobrado') {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
                               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              Cobrado
+                              {{ t('status_cashed') }}
                             </span>
                           } @else if (query.status === 'Rechazado') {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
                               <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                              Rechazado (Sin fondos)
+                              {{ t('status_rejected') }}
                             </span>
                           } @else if (query.status === 'En espera') {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-100">
                               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                              En espera
+                              {{ t('status_on_hold') }}
                             </span>
                           } @else if (query.status === 'No reportado') {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-150 text-zinc-700 border border-zinc-200">
                               <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
-                              No reportado
+                              {{ t('status_not_reported') }}
                             </span>
                           } @else if (query.status === 'Cuenta cerrada') {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-950 border border-rose-200">
                               <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                              Cuenta cerrada
+                              {{ t('status_closed_account') }}
                             </span>
                           } @else {
                             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-50 text-zinc-500 border border-zinc-200/60">
                               <span class="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
-                              Pendiente
+                              {{ t('status_pending') }}
                             </span>
                           }
                         </td>
@@ -2389,8 +2564,8 @@
                         <td colspan="5" class="px-6 py-12 text-center text-zinc-400">
                           <div class="flex flex-col items-center justify-center space-y-2">
                             <mat-icon class="text-3xl">hourglass_empty</mat-icon>
-                            <span class="text-sm font-semibold">No se encontraron consultas</span>
-                            <span class="text-[11px] text-zinc-400">Asegúrate de que la búsqueda sea correcta o que este usuario haya realizado consultas para esta cuenta.</span>
+                            <span class="text-sm font-semibold">{{ t('no_inquiries_found') }}</span>
+                            <span class="text-[11px] text-zinc-400">{{ t('ensure_search_correct') }}</span>
                           </div>
                         </td>
                       </tr>
@@ -2403,9 +2578,9 @@
               @if (filteredUserQueries().length > 0) {
                 <div class="bg-zinc-50/40 px-6 py-3.5 border-t border-zinc-200/50 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div class="text-xs text-zinc-400 font-medium">
-                    Mostrando <span class="font-bold text-zinc-700">{{ userQueriesRangeStart() }}</span> a 
-                    <span class="font-bold text-zinc-700">{{ userQueriesRangeEnd() }}</span> de 
-                    <span class="font-bold text-zinc-700">{{ filteredUserQueries().length }}</span> consultas
+                    {{ t('showing') }} <span class="font-bold text-zinc-700">{{ userQueriesRangeStart() }}</span> {{ t('to') }} 
+                    <span class="font-bold text-zinc-700">{{ userQueriesRangeEnd() }}</span> {{ t('of') }} 
+                    <span class="font-bold text-zinc-700">{{ filteredUserQueries().length }}</span> {{ t('inquiries') }}
                   </div>
 
                   <div class="flex items-center gap-1.5">
@@ -2415,7 +2590,7 @@
                       [disabled]="userQueriesPage() === 1"
                       (click)="userQueriesPage.set(userQueriesPage() - 1)"
                       class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs flex items-center justify-center"
-                      title="Página Anterior"
+                      [title]="t('prev_page')"
                     >
                       <mat-icon class="text-base leading-none">chevron_left</mat-icon>
                     </button>
@@ -2445,7 +2620,7 @@
                       [disabled]="userQueriesPage() === userQueriesTotalPages()"
                       (click)="userQueriesPage.set(userQueriesPage() + 1)"
                       class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs flex items-center justify-center"
-                      title="Página Siguiente"
+                      [title]="t('next_page')"
                     >
                       <mat-icon class="text-base leading-none">chevron_right</mat-icon>
                     </button>
@@ -2463,7 +2638,7 @@
                   type="button"
                   (click)="closeUserPayments()"
                   class="p-2 bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 rounded-xl transition-all shadow-xs outline-none cursor-pointer active:scale-95 flex items-center justify-center animate-fade-in"
-                  title="Regresar a usuarios"
+                  [title]="t('back_to_users')"
                 >
                   <mat-icon class="text-lg font-bold leading-none">arrow_back</mat-icon>
                 </button>
@@ -2478,7 +2653,7 @@
                       {{ selectedUserForPayments() }}
                     </h1>
                     <p class="text-[11px] text-zinc-400 font-medium font-sans uppercase tracking-wider">
-                      Historial pagos
+                      {{ t('payment_history') }}
                     </p>
                   </div>
                 </div>
@@ -2495,7 +2670,7 @@
                     type="text"
                     [value]="paymentsSearchQuery()"
                     (input)="paymentsSearchQuery.set($any($event.target).value); paymentsPage.set(1)"
-                    placeholder="Buscar fecha (AAAA-MM-DD)..."
+                    [placeholder]="t('search_date_placeholder')"
                     class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-zinc-300 transition-all font-medium text-zinc-700"
                   />
                   @if (paymentsSearchQuery()) {
@@ -2517,7 +2692,7 @@
                     (change)="paymentsStatusFilter.set($any($event.target).value); paymentsPage.set(1)"
                     class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-zinc-300 transition-all font-semibold text-zinc-700 appearance-none cursor-pointer"
                   >
-                    <option value="Todos">Todos los estados</option>
+                    <option value="Todos">{{ t('all_statuses') }}</option>
                     <option value="Correcto">Correcto</option>
                     <option value="Pendiente">Pendiente</option>
                     <option value="Rechazado (Sin fondos)">Rechazado (Sin fondos)</option>
@@ -2541,7 +2716,7 @@
                         class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none"
                       >
                         <div class="flex items-center gap-1.5">
-                          <span>Fecha de Pago</span>
+                          <span>{{ t('payment_date') }}</span>
                           @if (paymentsSortField() === 'paymentDate') {
                             <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
@@ -2556,7 +2731,7 @@
                         class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none text-right"
                       >
                         <div class="flex items-center justify-end gap-1.5 font-bold">
-                          <span>Valor pagado</span>
+                          <span>{{ t('amount_paid') }}</span>
                           @if (paymentsSortField() === 'amount') {
                             <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
@@ -2571,7 +2746,7 @@
                         class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none text-right"
                       >
                         <div class="flex items-center justify-end gap-1.5">
-                          <span>Saldo actual</span>
+                          <span>{{ t('current_balance') }}</span>
                           @if (paymentsSortField() === 'currentBalance') {
                             <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
@@ -2586,7 +2761,7 @@
                         class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none"
                       >
                         <div class="flex items-center gap-1.5">
-                          <span>Estado de cobro</span>
+                          <span>{{ t('status') }}</span>
                           @if (paymentsSortField() === 'status') {
                             <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
@@ -2596,7 +2771,7 @@
                       </th>
 
                       <!-- Acciones (Ver comprobante) -->
-                      <th class="px-6 py-4 text-center">Comprobante</th>
+                      <th class="px-6 py-4 text-center">{{ t('receipt') }}</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-zinc-100 text-xs text-zinc-750">
@@ -2622,17 +2797,17 @@
                           @if (py.status === 'Correcto') {
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
                               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              Correcto
+                              {{ t('approved') }}
                             </span>
                           } @else if (py.status === 'Pendiente') {
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-100 animate-pulse">
                               <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                              Pendiente de auditoría
+                              {{ t('status_pending_audit') }}
                             </span>
                           } @else {
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100" [title]="py.rejectReason || ''">
                               <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                              Rechazado (Sin fondos)
+                              {{ t('status_rejected') }}
                             </span>
                           }
                         </td>
@@ -2645,7 +2820,7 @@
                             class="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all outline-none cursor-pointer border-b-2 border-emerald-850 active:border-b-0 shadow-xs"
                           >
                             <mat-icon class="text-xs leading-none">article</mat-icon>
-                            <span>Ver comprobante</span>
+                            <span>{{ t('view_receipt') }}</span>
                           </button>
                         </td>
                       </tr>
@@ -2654,8 +2829,8 @@
                         <td colspan="5" class="px-6 py-12 text-center text-zinc-400">
                           <div class="flex flex-col items-center justify-center space-y-2">
                             <mat-icon class="text-3xl text-zinc-300">receipt_long</mat-icon>
-                            <span class="text-xs font-semibold">No se encontraron transferencias para este usuario</span>
-                            <span class="text-[10px] text-zinc-400">No hay pagos registrados bajo los criterios seleccionados.</span>
+                            <span class="text-xs font-semibold">{{ t('no_transfers_found') }}</span>
+                            <span class="text-[10px] text-zinc-400">{{ t('no_payments_criteria') }}</span>
                           </div>
                         </td>
                       </tr>
@@ -2668,7 +2843,7 @@
               @if (filteredUserPayments().length > 0) {
                 <div class="flex flex-col sm:flex-row items-center justify-between p-5 border-t border-zinc-150 bg-zinc-50/20 gap-4" id="payments-pagination">
                   <span class="text-xs text-zinc-450 font-medium">
-                    Mostrando <strong class="text-zinc-750 font-bold">{{ paymentsRangeStart() }}</strong> a <strong class="text-zinc-750 font-bold">{{ paymentsRangeEnd() }}</strong> de <strong class="text-zinc-750 font-mono">{{ filteredUserPayments().length }}</strong> movimientos bancarios
+                    {{ t('showing') }} <strong class="text-zinc-750 font-bold">{{ paymentsRangeStart() }}</strong> {{ t('to') }} <strong class="text-zinc-750 font-bold">{{ paymentsRangeEnd() }}</strong> {{ t('of') }} <strong class="text-zinc-750 font-mono">{{ filteredUserPayments().length }}</strong> {{ t('bank_movements') }}
                   </span>
                   
                   <div class="flex items-center gap-2">
@@ -2678,7 +2853,7 @@
                       [disabled]="paymentsPage() === 1"
                       (click)="paymentsPage.set(paymentsPage() - 1)"
                       class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs flex items-center justify-center"
-                      title="Página Anterior"
+                      [title]="t('prev_page')"
                     >
                       <mat-icon class="text-base leading-none">chevron_left</mat-icon>
                     </button>
@@ -2704,7 +2879,7 @@
                       [disabled]="paymentsPage() === paymentsTotalPages()"
                       (click)="paymentsPage.set(paymentsPage() + 1)"
                       class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs flex items-center justify-center"
-                      title="Página Siguiente"
+                      [title]="t('next_page')"
                     >
                       <mat-icon class="text-base leading-none">chevron_right</mat-icon>
                     </button>
@@ -2714,31 +2889,20 @@
             </div>
           }
         </main>
-      } @else if (selectedTab() !== 'Sistema') {
-        <main class="flex-grow flex flex-col items-center justify-center p-8 bg-zinc-50/20" id="container-central-content">
-          <div class="text-center space-y-3 max-w-md animate-fade-in px-4">
-            <!-- Text "Esperando configuración" -->
-            <h2 class="text-3xl md:text-4xl font-light text-zinc-400 tracking-tight select-none" id="txt-esperando-configuracion">
-              Esperando configuración
-            </h2>
-            <!-- Very subtle geometric line divider to give premium depth -->
-            <div class="w-12 h-1 bg-zinc-200/80 mx-auto rounded-full"></div>
-          </div>
-        </main>
       } @else {
         <!-- Dynamic "Sistema" Management Tab Content -->
         <main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto" id="container-central-content">
           
           <div class="flex items-center justify-between pb-4 border-b border-zinc-200/50">
             <div>
-              <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">Configuración del Sistema</h1>
-              <p class="text-xs text-zinc-400 mt-0.5 font-normal">Gestione los de accesos de cuentas autorizadas y visitantes temporales.</p>
+              <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ t('system_title') }}</h1>
+              <p class="text-xs text-zinc-400 mt-0.5 font-normal">{{ t('system_desc') }}</p>
             </div>
             
             @if (isLoadingData()) {
               <div class="flex items-center gap-2 text-emerald-600 text-xs font-medium">
                 <span class="w-4.5 h-4.5 rounded-full border-2 border-emerald-100 border-t-emerald-600 animate-spin"></span>
-                <span>Procesando base de datos...</span>
+                <span>{{ t('processing_db') }}</span>
               </div>
             }
           </div>
@@ -2749,7 +2913,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <mat-icon class="text-emerald-700">security</mat-icon>
-                  <span class="text-sm font-semibold text-zinc-800">Añadir de Nuevo Administrador</span>
+                  <span class="text-sm font-semibold text-zinc-800">{{ t('add_admin') }}</span>
                 </div>
                 <button (click)="showAddAdmin.set(false)" class="text-zinc-400 hover:text-zinc-600 cursor-pointer outline-none">
                   <mat-icon class="text-base">close</mat-icon>
@@ -2758,21 +2922,21 @@
 
               <form [formGroup]="adminForm" (ngSubmit)="onAddAdminSubmit()" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div class="space-y-1.5 md:col-span-2">
-                  <label for="admin-email-input" class="block text-xs font-semibold text-zinc-500 uppercase">Correo de Google</label>
+                  <label for="admin-email-input" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('google_email') }}</label>
                   <input 
                     id="admin-email-input"
                     type="email" 
                     formControlName="email"
-                    placeholder="ejemplo@biia-dots.com"
+                    placeholder="example@biia-dots.com"
                     class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
                   />
                   @if (adminForm.get('email')?.touched && adminForm.get('email')?.invalid) {
-                    <span class="text-[10px] text-rose-600 font-medium block">Ingrese un correo válido</span>
+                    <span class="text-[10px] text-rose-600 font-medium block">{{ t('enter_valid_email') }}</span>
                   }
                 </div>
 
                 <div class="flex items-center justify-between md:justify-around p-2.5 border border-zinc-100 bg-zinc-50/50 rounded-xl">
-                  <span class="text-xs font-medium text-zinc-600">Requerir 2FA</span>
+                  <span class="text-xs font-medium text-zinc-600">{{ t('required_2fa') }}</span>
                   <button 
                     type="button"
                     (click)="adminForm.get('twoFactor')?.setValue(!adminForm.get('twoFactor')?.value)"
@@ -2793,7 +2957,7 @@
                     class="px-4 py-2 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-500 hover:bg-zinc-50 cursor-pointer flex items-center gap-1.5"
                   >
                     <mat-icon class="text-sm">cancel</mat-icon>
-                    <span>Cancelar</span>
+                    <span>{{ t('cancel') }}</span>
                   </button>
                   <button 
                     type="submit" 
@@ -2801,7 +2965,7 @@
                     class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     <mat-icon class="text-sm">save</mat-icon>
-                    <span>Guardar Administrador</span>
+                    <span>{{ t('save') }}</span>
                   </button>
                 </div>
               </form>
@@ -2813,7 +2977,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <mat-icon class="text-emerald-700">lock_open</mat-icon>
-                  <span class="text-sm font-semibold text-zinc-800">Registrar de Nuevo Visitante (Juez o Autoridad)</span>
+                  <span class="text-sm font-semibold text-zinc-800">{{ t('register_visitor') }}</span>
                 </div>
                 <button (click)="showAddVisitor.set(false)" class="text-zinc-400 hover:text-zinc-600 cursor-pointer outline-none">
                   <mat-icon class="text-base">close</mat-icon>
@@ -2823,7 +2987,7 @@
               <form [formGroup]="visitorForm" (ngSubmit)="onAddVisitorSubmit()" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
-                    <label for="visitor-email-input" class="block text-xs font-semibold text-zinc-500 uppercase">Correo de Google</label>
+                    <label for="visitor-email-input" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('google_email') }}</label>
                     <input 
                       id="visitor-email-input"
                       type="email" 
@@ -2832,12 +2996,12 @@
                       class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono"
                     />
                     @if (visitorForm.get('email')?.touched && visitorForm.get('email')?.invalid) {
-                      <span class="text-[10px] text-rose-600 font-medium block">Ingrese un correo válido</span>
+                      <span class="text-[10px] text-rose-600 font-medium block">{{ t('enter_valid_email') }}</span>
                     }
                   </div>
 
                   <div class="flex items-center justify-between px-4 py-2.5 border border-zinc-100 bg-zinc-50/50 rounded-xl h-[46px] self-end">
-                    <span class="text-xs font-medium text-zinc-600">Requerir 2FA</span>
+                    <span class="text-xs font-medium text-zinc-600">{{ t('require_2fa') }}</span>
                     <button 
                       type="button"
                       (click)="visitorForm.get('twoFactor')?.setValue(!visitorForm.get('twoFactor')?.value)"
@@ -2854,7 +3018,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
-                    <label for="visitor-valid-from-input" class="block text-xs font-semibold text-zinc-500 uppercase">Acceso Desde</label>
+                    <label for="visitor-valid-from-input" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('access_from') }}</label>
                     <input 
                       id="visitor-valid-from-input"
                       type="date" 
@@ -2864,7 +3028,7 @@
                   </div>
 
                   <div class="space-y-1.5">
-                    <label for="visitor-valid-to-input" class="block text-xs font-semibold text-zinc-500 uppercase">Acceso Hasta</label>
+                    <label for="visitor-valid-to-input" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('access_until') }}</label>
                     <input 
                       id="visitor-valid-to-input"
                       type="date" 
@@ -2881,7 +3045,7 @@
                     class="px-4 py-2 border border-zinc-200 rounded-xl text-xs font-medium text-zinc-500 hover:bg-zinc-50 cursor-pointer flex items-center gap-1.5"
                   >
                     <mat-icon class="text-sm">cancel</mat-icon>
-                    <span>Cancelar</span>
+                    <span>{{ t('cancel') }}</span>
                   </button>
                   <button 
                     type="submit" 
@@ -2889,7 +3053,7 @@
                     class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
                     <mat-icon class="text-sm">save</mat-icon>
-                    <span>Guardar Visitante</span>
+                    <span>{{ t('save_visitor') }}</span>
                   </button>
                 </div>
               </form>
@@ -2908,8 +3072,8 @@
                     <mat-icon class="text-xl">admin_panel_settings</mat-icon>
                   </div>
                   <div>
-                    <h3 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Admin</h3>
-                    <p class="text-[10px] text-zinc-400 font-normal">Roles con poderes administrativos plenos.</p>
+                    <h3 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('administrators') }}</h3>
+                    <p class="text-[10px] text-zinc-400 font-normal">{{ t('administrators_desc') }}</p>
                   </div>
                 </div>
 
@@ -2920,7 +3084,7 @@
                   id="btn-add-admin"
                 >
                   <mat-icon class="text-xs shrink-0 font-bold">add</mat-icon>
-                  <span>Añadir</span>
+                  <span>{{ t('add_label') }}</span>
                 </button>
               </div>
 
@@ -2942,7 +3106,7 @@
                     </div>
                     <div class="min-w-0">
                       <span class="text-xs font-semibold text-zinc-800 font-mono block truncate">emprende@biia-dots.com</span>
-                      <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-wide select-none">Super Administrador</span>
+                      <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-wide select-none">{{ t('super_administrator') }}</span>
                     </div>
                   </div>
 
@@ -2968,7 +3132,7 @@
                         </div>
                         <div class="min-w-0">
                           <span class="text-xs font-semibold text-zinc-800 font-mono block truncate">{{ admin.email }}</span>
-                          <span class="text-[9px] text-zinc-400 font-normal">Administrador</span>
+                          <span class="text-[9px] text-zinc-400 font-normal">{{ t('administrator') }}</span>
                         </div>
                       </div>
 
@@ -2992,7 +3156,7 @@
                           <button 
                             (click)="deleteAdmin(admin.id)"
                             class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
-                            title="Eliminar Administrador"
+                            [title]="t('delete_administrator')"
                           >
                             <mat-icon class="text-sm shrink-0">delete</mat-icon>
                           </button>
@@ -3014,8 +3178,8 @@
                     <mat-icon class="text-xl">lock_open</mat-icon>
                   </div>
                   <div>
-                    <h3 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">Visitantes</h3>
-                    <p class="text-[10px] text-zinc-400 font-normal">Acceso temporal de solo lectura para invitados.</p>
+                    <h3 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('visitors') }}</h3>
+                    <p class="text-[10px] text-zinc-400 font-normal">{{ t('visitors_desc') }}</p>
                   </div>
                 </div>
 
@@ -3026,7 +3190,7 @@
                   id="btn-add-visitor"
                 >
                   <mat-icon class="text-xs shrink-0 font-bold">add</mat-icon>
-                  <span>Añadir</span>
+                  <span>{{ t('add_label') }}</span>
                 </button>
               </div>
 
@@ -3036,7 +3200,7 @@
                 @if (visitorsList().length === 0) {
                   <div class="flex flex-col items-center justify-center py-10 space-y-2 border border-dashed border-zinc-200 rounded-2xl">
                     <mat-icon class="text-zinc-300 text-3xl">people_outline</mat-icon>
-                    <span class="text-xs text-zinc-400 font-medium">No hay visitantes de solo lectura registrados.</span>
+                    <span class="text-xs text-zinc-400 font-medium">{{ t('no_visitors_found') }}</span>
                   </div>
                 }
 
@@ -3068,7 +3232,7 @@
                           <button 
                             (click)="deleteVisitor(visitor.id)"
                             class="p-1 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
-                            title="Eliminar Visitante"
+                            [title]="t('delete_visitor')"
                           >
                             <mat-icon class="text-xs shrink-0">delete</mat-icon>
                           </button>
@@ -3079,12 +3243,12 @@
                     <!-- Validity Date Badges -->
                     <div class="flex items-center gap-2 flex-wrap">
                       <div class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-zinc-50 border border-zinc-150 rounded-full text-[10px] text-zinc-500 font-medium">
-                        <span class="opacity-70">Desde:</span>
+                        <span class="opacity-70">{{ t('from_label') }}</span>
                         <span class="font-semibold">{{ visitor.validFrom | date:'mediumDate' }}</span>
                       </div>
                       
                       <div class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-50/50 border border-rose-100 rounded-full text-[10px] text-rose-600 font-medium">
-                        <span class="opacity-70">Hasta:</span>
+                        <span class="opacity-70">{{ t('to_label') }}</span>
                         <span class="font-semibold">{{ visitor.validTo | date:'mediumDate' }}</span>
                       </div>
                     </div>
@@ -3102,20 +3266,22 @@
             
             <button 
               (click)="saveAndNext()"
-              class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs"
+              class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs focus:outline-none"
               id="btn-save-next"
+              [title]="t('save_next')"
             >
               <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
-              <span>Guardar / siguiente</span>
+              <span>{{ t('save_next') }}</span>
             </button>
             
             <button 
               (click)="saveAndExit()"
-              class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs"
+              class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs focus:outline-none"
               id="btn-save-exit"
+              [title]="t('save_exit')"
             >
               <mat-icon class="text-sm shrink-0">logout</mat-icon>
-              <span>Guardar y salir</span>
+              <span>{{ t('save_exit') }}</span>
             </button>
 
           </div>
@@ -3136,14 +3302,14 @@
         <div class="bg-rose-600 text-white px-6 py-4 flex items-center justify-between shadow-xs">
           <div class="flex items-center gap-2">
             <mat-icon class="text-xl shrink-0 leading-none">warning</mat-icon>
-            <span class="font-bold text-sm uppercase tracking-wide">Alerta Nuevo Banco Registrado</span>
+            <span class="font-bold text-sm uppercase tracking-wide">{{ t('new_bank_alert') }}</span>
           </div>
           <!-- X Close Button -->
           <button 
             type="button" 
             (click)="closeAlertModal()" 
             class="p-1 rounded-full hover:bg-white/10 text-white/90 hover:text-white transition-all cursor-pointer outline-none focus:ring-1 focus:ring-white/20"
-            title="Cerrar ventana"
+            [title]="t('close_window')"
           >
             <mat-icon class="text-lg">close</mat-icon>
           </button>
@@ -3155,26 +3321,26 @@
           @if (currentAlert()) {
             <div class="bg-zinc-50 border border-zinc-200/60 rounded-xl p-4.5 space-y-2">
               <div class="flex items-center justify-between text-xs pb-2 border-b border-zinc-200/40">
-                <span class="text-zinc-500 font-medium font-sans">Información ingresada por el usuario (WhatsApp)</span>
-                <span class="text-rose-600 bg-rose-50 px-2 py-0.5 font-bold rounded">Pendiente de Revisión</span>
+                <span class="text-zinc-500 font-medium font-sans">{{ t('info_entered_whatsapp') }}</span>
+                <span class="text-rose-600 bg-rose-50 px-2 py-0.5 font-bold rounded">{{ t('pending_review') }}</span>
               </div>
               <div class="flex items-baseline gap-2">
-                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">Nombre del banco:</span>
+                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">{{ t('bank_name_label') }}</span>
                 <span class="text-xs font-bold text-rose-800 font-mono bg-rose-50 px-2 py-0.5 rounded border border-rose-100/30">"{{ currentAlert()?.suggestedBankName }}"</span>
               </div>
               <div class="flex items-baseline gap-2">
-                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">Cuenta del banco:</span>
+                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">{{ t('bank_account_label') }}</span>
                 <span class="text-xs font-bold text-zinc-700 font-mono">{{ currentAlert()?.accountNumber }}</span>
               </div>
               <div class="flex items-baseline gap-2">
-                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">Sugerido por:</span>
+                <span class="text-xs font-semibold text-zinc-500 uppercase w-32 shrink-0">{{ t('suggested_by') }}</span>
                 <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono">{{ currentAlert()?.userPhone }}</span>
               </div>
             </div>
 
             <!-- Principal Decision Actions Center -->
             <div class="space-y-4">
-              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest text-center">Acciones de Catalogación</h3>
+              <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest text-center">{{ t('cataloging_actions') }}</h3>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Option 1: Añadir como Banco Oficial (Añadir nuevo) -->
@@ -3200,8 +3366,8 @@
                   >
                     <mat-icon class="text-xl">add_box</mat-icon>
                   </div>
-                  <span class="text-xs font-bold mt-3">Añadir nuevo</span>
-                  <p class="text-[10px] text-zinc-400 mt-1 font-normal max-w-[150px]">Aprobar el texto literal y crearlo como institución financiera autorizada en el catálogo.</p>
+                  <span class="text-xs font-bold mt-3">{{ t('add_new') }}</span>
+                  <p class="text-[10px] text-zinc-400 mt-1 font-normal max-w-[150px]">{{ t('approve_literal_desc') }}</p>
                 </button>
 
                 <!-- Option 2: Corregir / Asociar a un Banco Existente (Desplegable buscador) -->
@@ -3217,7 +3383,7 @@
                     <div class="p-1 rounded bg-amber-500 text-white shrink-0">
                       <mat-icon class="text-sm shrink-0 leading-none">swap_horiz</mat-icon>
                     </div>
-                    <span class="text-xs font-bold text-zinc-800 font-sans">Corregir a:</span>
+                    <span class="text-xs font-bold text-zinc-800 font-sans">{{ t('correct_to') }}</span>
                   </div>
 
                   <!-- Search Input inside Dropdown Block -->
@@ -3227,7 +3393,7 @@
                       [value]="alertCorrectionSearchQuery()"
                       (input)="alertCorrectionSearchQuery.set($any($event.target).value); alertDecision.set('correct')"
                       (focus)="alertDecision.set('correct')"
-                      placeholder="Escriba para buscar banco oficial..." 
+                      [placeholder]="t('search_official_bank')" 
                       class="w-full text-xs px-3 py-2 rounded-lg border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all font-semibold text-zinc-700"
                     />
                     
@@ -3242,12 +3408,12 @@
                           {{ bankName }}
                         </button>
                       } @empty {
-                        <span class="text-[10px] text-zinc-400 px-2 py-1.5 block">No hay coincidencias</span>
+                        <span class="text-[10px] text-zinc-400 px-2 py-1.5 block">{{ t('no_matches') }}</span>
                       }
                     </div>
                   </div>
 
-                  <p class="text-[10px] text-zinc-400 mt-2 font-normal">Sustituye la mala ortografía y asocia la cuenta con el banco oficial elegido.</p>
+                  <p class="text-[10px] text-zinc-400 mt-2 font-normal">{{ t('correct_spell_desc') }}</p>
                 </div>
               </div>
             </div>
@@ -3257,8 +3423,8 @@
               <div class="p-4 bg-emerald-50 rounded-full text-emerald-600 border border-emerald-100">
                 <mat-icon class="text-3xl">verified</mat-icon>
               </div>
-              <h4 class="text-sm font-bold text-zinc-800">¡Bandeja Limpia!</h4>
-              <p class="text-xs text-zinc-400 max-w-xs">No hay nuevas sugerencias de bancos registrados por WhatsApp pendientes que clasificar o corregir.</p>
+              <h4 class="text-sm font-bold text-zinc-800">{{ t('inbox_clear') }}</h4>
+              <p class="text-xs text-zinc-400 max-w-xs">{{ t('no_pending_alerts_desc') }}</p>
             </div>
           }
         </div>
@@ -3273,7 +3439,7 @@
               class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer outline-none select-none border-b-2 border-emerald-700 active:border-b-0"
             >
               <mat-icon class="text-sm shrink-0 leading-none">arrow_forward</mat-icon>
-              <span>Guardar y siguiente</span>
+              <span>{{ t('save_next') }}</span>
             </button>
 
             <!-- Save and Exit -->
@@ -3283,7 +3449,7 @@
               class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer outline-none select-none border-b-2 border-emerald-950 active:border-b-0"
             >
               <mat-icon class="text-xs shrink-0 leading-none">save</mat-icon>
-              <span>Guardar y salir</span>
+              <span>{{ t('save_exit') }}</span>
             </button>
           } @else {
             <button 
@@ -3291,7 +3457,7 @@
               (click)="closeAlertModal()"
               class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
-              Salir
+              {{ t('exit') }}
             </button>
           }
         </div>
@@ -3320,9 +3486,9 @@
         >
           <!-- Red Banner (Header covers left side) -->
           <div class="h-12 bg-red-600 px-4 flex items-center justify-between text-white font-bold text-xs shrink-0">
-            <span class="tracking-wide">COMPROBANTE DE PAGO</span>
+            <span class="tracking-wide">{{ t('proof_of_payment') }}</span>
             @if (py.status !== 'Pendiente') {
-              <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded font-sans uppercase">Consulta</span>
+              <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded font-sans uppercase">{{ t('inquiry_tab') }}</span>
             }
           </div>
 
@@ -3340,33 +3506,33 @@
 
               <div class="py-3 space-y-2 font-medium">
                 <div class="flex justify-between">
-                  <span class="text-zinc-400">Estado:</span>
-                  <span class="text-emerald-600 font-bold">PROCESADO EXITOSO</span>
+                  <span class="text-zinc-400">{{ t('status') }}:</span>
+                  <span class="text-emerald-600 font-bold uppercase">{{ t('processed_successfully') }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-zinc-400">Origen:</span>
+                  <span class="text-zinc-400">{{ t('source_label') }}</span>
                   <span class="font-mono text-zinc-700">Ahorros *******1234</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-zinc-400">Destino:</span>
+                  <span class="text-zinc-400">{{ t('destination_label') }}</span>
                   <span class="font-mono text-zinc-700">LUPACHEQUE S.A.</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-zinc-400">Fecha/Hora:</span>
+                  <span class="text-zinc-400">{{ t('date_time_label') }}</span>
                   <span class="text-zinc-700">{{ py.paymentDateFormatted }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-zinc-400">Núm. Documento:</span>
+                  <span class="text-zinc-400">{{ t('document_no_label') }}</span>
                   <span class="font-mono font-bold text-zinc-700">REF-0487519962</span>
                 </div>
               </div>
 
               <div class="pt-3 text-center animate-pulse">
-                <span class="text-zinc-400 font-medium text-[10px]">VALOR DE TRANSFERENCIA</span>
+                <span class="text-zinc-400 font-medium text-[10px] uppercase font-bold">{{ t('transfer_value') }}</span>
                 <div class="text-2xl font-black text-zinc-900 font-mono mt-1">
                   {{ py.amount > 0 ? (py.amount | currency: 'USD') : '$5.00' }}
                 </div>
-                <div class="text-[9px] text-zinc-400 font-sans mt-0.5">Transferencia de Recarga de Saldo</div>
+                <div class="text-[9px] text-zinc-400 font-sans mt-0.5">{{ t('balance_recharge_transfer') }}</div>
               </div>
             </div>
 
@@ -3375,7 +3541,7 @@
               type="button"
               (click)="toggleReceiptZoom()"
               class="absolute bottom-3 right-3 p-2 rounded-full bg-white hover:bg-zinc-100 border border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:text-emerald-600 transition-all shadow-xs shrink-0 select-none cursor-pointer outline-none active:scale-90 flex items-center justify-center hover:scale-105"
-              [title]="isReceiptZoomed() ? 'Reducir de tamaño' : 'Agrandar / Expandir imagen'"
+              [title]="isReceiptZoomed() ? t('zoom_out_label') : t('zoom_in_label')"
             >
               <mat-icon class="text-sm leading-none shrink-0">zoom_out_map</mat-icon>
             </button>
@@ -3387,14 +3553,14 @@
           <!-- Modal top detail and dismiss "X" -->
           <div class="p-6 border-b border-zinc-100 flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-[9px] uppercase font-bold text-zinc-400 tracking-wider">Auditoría Antifraude</span>
-              <h4 class="text-sm font-bold text-zinc-900 leading-tight">Acciones sobre Recarga</h4>
+              <span class="text-[9px] uppercase font-bold text-zinc-400 tracking-wider">{{ t('antifraud_audit') }}</span>
+              <h4 class="text-sm font-bold text-zinc-900 leading-tight">{{ t('recharge_actions') }}</h4>
             </div>
             <button
               type="button"
               (click)="closePaymentAuditModal()"
               class="p-1.5 rounded-lg bg-zinc-50 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 border border-zinc-200 hover:border-rose-100 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center shrink-0 shadow-xs"
-              title="Cerrar modal"
+              [title]="t('close_modal')"
             >
               <mat-icon class="text-sm shrink-0 leading-none">close</mat-icon>
             </button>
@@ -3405,21 +3571,21 @@
             <!-- Summary card info -->
             <div class="bg-zinc-50 rounded-xl p-4 border border-zinc-150/80 space-y-2">
               <div class="flex justify-between text-xs">
-                <span class="text-zinc-500 font-medium">Usuario / Teléfono:</span>
+                <span class="text-zinc-500 font-medium">{{ t('user_phone_label') }}</span>
                 <span class="font-mono font-bold text-zinc-800">{{ py.userPhone }}</span>
               </div>
               <div class="flex justify-between text-xs">
-                <span class="text-zinc-500 font-medium">Monto Recargado:</span>
+                <span class="text-zinc-500 font-medium">{{ t('recharged_amount') }}</span>
                 <span class="font-mono font-bold text-emerald-700">{{ py.amount | currency : 'USD' : 'symbol' : '1.2-2' }}</span>
               </div>
               <div class="flex justify-between text-xs">
-                <span class="text-zinc-500 font-medium">Estado del Pago:</span>
+                <span class="text-zinc-500 font-medium">{{ t('payment_status') }}</span>
                 @if (py.status === 'Correcto') {
-                  <span class="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-emerald-100">Aprobado</span>
+                  <span class="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-emerald-100">{{ t('approved') }}</span>
                 } @else if (py.status === 'Pendiente') {
-                  <span class="bg-amber-50 text-amber-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-amber-100 animate-pulse">Pendiente</span>
+                  <span class="bg-amber-50 text-amber-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-amber-100 animate-pulse">{{ t('pending') }}</span>
                 } @else {
-                  <span class="bg-rose-50 text-rose-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-rose-100 text-right">Rechazado (Sin fondos)</span>
+                  <span class="bg-rose-50 text-rose-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-rose-100 text-right">{{ t('status_rejected') }}</span>
                 }
               </div>
             </div>
@@ -3427,14 +3593,14 @@
             <!-- Status specific logic input or display -->
             @if (py.status === 'Pendiente') {
               <div class="space-y-2.5">
-                <span class="text-xs font-bold text-zinc-700 block">Razones por las que se rechaza es de comprobante:</span>
+                <span class="text-xs font-bold text-zinc-700 block">{{ t('reject_reason_title') }}</span>
                 
                 <textarea
                   id="textarea-reject-reason"
                   [value]="rejectReasonText()"
                   (input)="rejectReasonText.set($any($event.target).value)"
                   rows="4"
-                  placeholder="Obligatorio ingresar texto para que se encienda rechazar. Razones por las que se rechaza este comprobante."
+                  [placeholder]="t('reject_placeholder')"
                   class="w-full text-xs p-3.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-rose-500 hover:border-zinc-300 transition-all font-semibold text-zinc-700 resize-none font-sans"
                 ></textarea>
               </div>
@@ -3444,18 +3610,18 @@
                 @if (py.status === 'Correcto') {
                   <div class="text-emerald-700 font-bold flex items-center gap-1.5 leading-none">
                     <mat-icon class="text-base flex items-center leading-none">check_circle</mat-icon>
-                    <span>Transacción Aprobada de manera exitosa</span>
+                    <span>{{ t('transaction_approved_success') }}</span>
                   </div>
-                  <p class="text-zinc-400 text-[10px] font-normal font-sans leading-relaxed">Este comprobante de recarga fue auditado y el saldo ya se encuentra a favor del perfil del usuario.</p>
+                  <p class="text-zinc-400 text-[10px] font-normal font-sans leading-relaxed">{{ t('recharge_audited_desc') }}</p>
                 } @else {
                   <div class="text-rose-700 font-bold flex items-center gap-1.5 leading-none">
                     <mat-icon class="text-base flex items-center leading-none">error</mat-icon>
-                    <span>Transacción de Recarga Rechazada</span>
+                    <span>{{ t('recharge_rejected_title') }}</span>
                   </div>
                   <div class="space-y-1">
-                    <span class="block font-bold text-zinc-700">Razón registrada por el Admin:</span>
+                    <span class="block font-bold text-zinc-700">{{ t('reason_recorded_admin') }}</span>
                     <p class="italic block bg-white border border-zinc-200 p-2.5 rounded font-mono text-[10px] text-zinc-600 select-all leading-normal">
-                      {{ py.rejectReason || 'No se registraron razones específicas.' }}
+                      {{ py.rejectReason || t('no_specific_reasons') }}
                     </p>
                   </div>
                 }
@@ -3474,7 +3640,7 @@
                 class="w-full py-3 px-6 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs border-b-2 border-emerald-850 hover:scale-101 active:scale-98 transition-all cursor-pointer outline-none flex items-center justify-center gap-2 text-xs"
               >
                 <mat-icon class="text-sm leading-none shrink-0 font-bold">check</mat-icon>
-                <span>Aceptar</span>
+                <span>{{ t('accept_label') }}</span>
               </button>
 
               <!-- Conditional button trigger reject -->
@@ -3488,7 +3654,7 @@
                   : 'w-full py-3 px-6 rounded-xl font-bold border border-zinc-200 bg-zinc-100 text-zinc-400 cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs'"
               >
                 <mat-icon class="text-sm leading-none shrink-0 font-bold">block</mat-icon>
-                <span>Rechazar</span>
+                <span>{{ t('reject_label') }}</span>
               </button>
             } @else {
               <button
@@ -3496,7 +3662,7 @@
                 (click)="closePaymentAuditModal()"
                 class="w-full py-3 px-6 rounded-xl font-bold bg-zinc-800 hover:bg-zinc-700 text-white shadow-xs border-transparent hover:scale-101 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-2 text-xs"
               >
-                <span>Cerrar Vista de Auditoría</span>
+                <span>{{ t('close_audit_view') }}</span>
               </button>
             }
           </div>
