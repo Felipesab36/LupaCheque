@@ -529,11 +529,11 @@
                 </div>
               </div>
 
-              <!-- Multi Column Grid for inputs (optimizing horizontal space) -->
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Multi Column Grid for inputs (optimizing horizontal space - expanded to 4 cols) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 <!-- Nombre -->
-                <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
+                <div class="space-y-1.5 md:col-span-1 lg:col-span-2">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_name') }}</span>
                   <input 
                     type="text"
@@ -566,24 +566,7 @@
                   }
                 </div>
 
-                <!-- Dirección -->
-                <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_address') }}</span>
-                  <input 
-                    type="text"
-                    formControlName="direccion"
-                    [placeholder]="t('fiscal_address')"
-                    class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
-                    [class.border-red-500]="isFacturacionFieldInvalid('direccion')"
-                    [class.border-zinc-200]="!isFacturacionFieldInvalid('direccion')"
-                    [title]="t('fiscal_address')"
-                  />
-                  @if (isFacturacionFieldInvalid('direccion')) {
-                    <p class="text-[10px] text-red-500 font-sans">{{ t('address_required') }}</p>
-                  }
-                </div>
-
-                <!-- Teléfono -->
+                <!-- Teléfono (Moved up to row 1) -->
                 <div class="space-y-1.5 lg:col-span-1">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_phone') }}</span>
                   <input 
@@ -597,6 +580,23 @@
                   />
                   @if (isFacturacionFieldInvalid('telefono')) {
                     <p class="text-[10px] text-red-500 font-sans">{{ t('phone_required') }}</p>
+                  }
+                </div>
+
+                <!-- Dirección -->
+                <div class="space-y-1.5 md:col-span-1 lg:col-span-2">
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_address') }}</span>
+                  <input 
+                    type="text"
+                    formControlName="direccion"
+                    [placeholder]="t('fiscal_address')"
+                    class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+                    [class.border-red-500]="isFacturacionFieldInvalid('direccion')"
+                    [class.border-zinc-200]="!isFacturacionFieldInvalid('direccion')"
+                    [title]="t('fiscal_address')"
+                  />
+                  @if (isFacturacionFieldInvalid('direccion')) {
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('address_required') }}</p>
                   }
                 </div>
 
@@ -644,15 +644,12 @@
                   }
                 </div>
 
-                <!-- Empty space or alignment filler if needed, but let's place P12 in its own full row -->
-                <div class="hidden lg:block lg:col-span-1"></div>
-
-                <!-- P12 File drag and drop space -->
-                <div class="space-y-1.5 md:col-span-2 lg:col-span-3">
+                <!-- P12 File drag and drop space (Spans full width now) -->
+                <div class="space-y-1.5 md:col-span-2 lg:col-span-4">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_p12') }}</span>
                   
                   <div 
-                    class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-7 transition-all cursor-pointer select-none min-h-[120px] focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
+                    class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-7 transition-all cursor-pointer select-none min-h-[90px] focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
                     tabindex="0"
                     [class.border-red-500]="isP12Invalid()"
                     [class.border-emerald-500]="p12FileUploaded()"
@@ -738,7 +735,7 @@
           </form>
         </main>
       } @else if (selectedTab() === 'Integraciones') {
-        <main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto" id="container-central-content-integrations">
+        <main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto w-full" id="container-central-content-integrations">
           
           <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
             <div>
@@ -753,7 +750,7 @@
           </div>
 
           <!-- Horizontal Inner Subtabs Navigation -->
-          <div class="flex border border-zinc-200 bg-zinc-100/40 p-1.5 rounded-2xl max-w-xl shadow-xs" id="integrations-subtabs">
+          <div class="flex border border-zinc-200 bg-zinc-100/40 p-1.5 rounded-2xl w-full shadow-xs" id="integrations-subtabs">
             <button 
               type="button"
               (click)="activeIntegrationSubTab.set('meta')"
@@ -799,7 +796,7 @@
             
             <!-- SUB-PESTAÑA 1: META / FACEBOOK (WhatsApp Business API) -->
             @if (activeIntegrationSubTab() === 'meta') {
-              <div class="space-y-6 animate-fade-in max-w-3xl bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-meta-fields">
+              <div class="space-y-6 animate-fade-in w-full bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-meta-fields">
                 <div class="flex items-start gap-3 pb-4 border-b border-zinc-100">
                   <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
                     <mat-icon>chat_bubble</mat-icon>
@@ -810,9 +807,9 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                   <!-- Selector de Código de País + Teléfono -->
-                  <div class="space-y-1.5">
+                  <div class="space-y-1.5 md:col-span-2">
                     <label for="meta-phone-code" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('sending_number') }}</label>
                     <div class="flex gap-2">
                       <div class="relative w-1/3 shrink-0">
@@ -869,7 +866,7 @@
                   </div>
 
                   <!-- API Key / Interfaz programación -->
-                  <div class="space-y-1.5 md:col-span-2">
+                  <div class="space-y-1.5">
                     <label for="meta-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('interface_api_key') }}</label>
                     <input 
                       id="meta-api-key"
@@ -883,11 +880,11 @@
                   </div>
 
                   <!-- Token de Acceso Permanente (Tamaño mediano) -->
-                  <div class="space-y-1.5 md:col-span-2">
+                  <div class="space-y-1.5 col-span-1 md:col-span-2 lg:col-span-4 xl:col-span-1">
                     <label for="meta-token" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('system_user_token') }}</label>
                     <textarea 
                       id="meta-token"
-                      rows="3"
+                      rows="2"
                       formControlName="metaToken"
                       placeholder="EAAGb3... (Código permanente extenso de Meta Developers)"
                       class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 transition-all font-mono"
@@ -901,7 +898,7 @@
 
             <!-- SUB-PESTAÑA 2: GEMINI -->
             @if (activeIntegrationSubTab() === 'gemini') {
-              <div class="space-y-6 animate-fade-in max-w-3xl bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-gemini-fields">
+              <div class="space-y-6 animate-fade-in w-full bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-gemini-fields">
                 <div class="flex items-start gap-3 pb-4 border-b border-zinc-100">
                   <div class="p-2.5 bg-violet-50 text-violet-600 rounded-xl">
                     <mat-icon>auto_awesome</mat-icon>
@@ -912,9 +909,9 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                   <!-- API Key -->
-                  <div class="space-y-1.5 md:col-span-2">
+                  <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
                     <label for="gemini-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('integrations_secret_key') }} (Google AI Studio)</label>
                     <input 
                       id="gemini-api-key"
@@ -961,7 +958,7 @@
 
             <!-- SUB-PESTAÑA 3: SRI (ELECTRONIC BILLING) - BORN LOCKED & DISABLED -->
             @if (activeIntegrationSubTab() === 'sri') {
-              <div class="space-y-6 animate-fade-in max-w-3xl bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-200 relative overflow-hidden" id="container-sri-fields">
+              <div class="space-y-6 animate-fade-in w-full bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-200 relative overflow-hidden" id="container-sri-fields">
                 <!-- Visually elegant lock watermark -->
                 <div class="absolute right-4 top-4 bg-rose-50 text-rose-800 text-[10px] font-bold px-3 py-1 rounded-full border border-rose-100 flex items-center gap-1.5 select-none animate-pulse">
                   <mat-icon class="text-xs">lock</mat-icon>
@@ -1002,7 +999,7 @@
                 </div>
 
                 <!-- Fields for SRI Facturación Electrónica (Correct analyzed fields added as requested) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 opacity-60">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 opacity-60">
                   <!-- RUC Identificación (Correct addition) -->
                   <div class="space-y-1.5">
                     <label for="sri-ruc" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('fiscal_ruc_abbr') }}</label>
@@ -1587,123 +1584,123 @@
             <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
               <div class="overflow-x-auto">
                 <table class="w-full table-auto min-w-[800px]">
-                  <thead class="bg-zinc-50 border-b border-zinc-200">
-                    <tr>
+                  <thead class="bg-zinc-50 border-b border-zinc-300">
+                    <tr class="divide-x divide-zinc-200">
                       <th 
                         (click)="toggleBancosSort('name')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('institution') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'name'" [class.text-zinc-300]="bancosSortField() !== 'name'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'name'" [class.text-zinc-300]="bancosSortField() !== 'name'">
                             {{ bancosSortField() === 'name' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosSort('activeSince')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('active_since') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'activeSince'" [class.text-zinc-300]="bancosSortField() !== 'activeSince'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'activeSince'" [class.text-zinc-300]="bancosSortField() !== 'activeSince'">
                             {{ bancosSortField() === 'activeSince' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosSort('accountsCount')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('acc_number') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'accountsCount'" [class.text-zinc-300]="bancosSortField() !== 'accountsCount'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'accountsCount'" [class.text-zinc-300]="bancosSortField() !== 'accountsCount'">
                             {{ bancosSortField() === 'accountsCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosSort('queriesCount')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('chart_queries') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'queriesCount'" [class.text-zinc-300]="bancosSortField() !== 'queriesCount'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'queriesCount'" [class.text-zinc-300]="bancosSortField() !== 'queriesCount'">
                             {{ bancosSortField() === 'queriesCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosSort('lastQuery')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('last_query') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'lastQuery'" [class.text-zinc-300]="bancosSortField() !== 'lastQuery'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'lastQuery'" [class.text-zinc-300]="bancosSortField() !== 'lastQuery'">
                             {{ bancosSortField() === 'lastQuery' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosSort('acceptanceRate')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>% {{ t('Dashboard') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosSortField() !== 'acceptanceRate'">
+                          <span>{{ t('confirmations_pct') }}</span>
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosSortField() !== 'acceptanceRate'">
                             {{ bancosSortField() === 'acceptanceRate' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
-                      <th class="px-6 py-4 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
                         {{ t('actions') }}
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100">
+                  <tbody class="divide-y divide-zinc-300">
                     @for (b of paginatedBanks(); track b.name; let i = $index) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           <span class="text-xs font-semibold text-zinc-800">{{ b.name }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-500">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
                           {{ b.activeSince }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (b.accountsCount > 0) {
-                            <span class="inline-flex items-center gap-1 font-semibold text-[11px] text-emerald-700 bg-emerald-50 rounded-lg px-2.5 py-1 border border-emerald-100">
-                              <mat-icon class="text-xs shrink-0">tag</mat-icon>
+                            <span class="inline-flex items-center gap-1 font-semibold text-[10px] text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 border border-emerald-100">
+                              <mat-icon class="text-[10px] shrink-0">tag</mat-icon>
                               <span>{{ b.accountsCount }}</span>
                             </span>
                           } @else {
-                            <span class="text-zinc-400 text-xs">-</span>
+                            <span class="text-zinc-400 text-[10px]">-</span>
                           }
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-zinc-600">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs font-mono text-zinc-600">
                           {{ b.queriesCount > 0 ? b.queriesCount : 0 }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-500">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
                           {{ b.lastQuery }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (b.acceptanceRate === 'N/A') {
-                            <span class="inline-flex text-[10px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-2 py-0.5 rounded">
+                            <span class="inline-flex text-[9px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-1.5 py-0.5 rounded">
                               N/A
                             </span>
                           } @else {
-                            <span class="inline-flex text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100_70">
+                            <span class="inline-flex text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                               {{ b.acceptanceRate }}
                             </span>
                           }
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           <button 
                             type="button"
                             (click)="viewBankDetail(b.name)" 
-                            class="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-500 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                            class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-500 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
                             title="Ver cuentas registradas de {{ b.name }}"
                           >
-                            <mat-icon class="text-base leading-none">visibility</mat-icon>
+                            <mat-icon class="text-[14px] leading-none">visibility</mat-icon>
                           </button>
                         </td>
                       </tr>
@@ -1779,10 +1776,10 @@
                 type="button"
                 (click)="closeBankDetail()"
                 class="self-start inline-flex items-center gap-1.5 text-zinc-500 hover:text-emerald-600 text-xs font-semibold hover:bg-zinc-100 px-3 py-2 rounded-xl transition-all outline-none cursor-pointer border border-zinc-200 shadow-sm"
-                title="Volver al catálogo principal de bancos"
+                [attr.title]="t('back_catalog')"
               >
                 <mat-icon class="text-base shrink-0 leading-none">arrow_back</mat-icon>
-                <span>Volver al Catálogo</span>
+                <span>{{ t('back_catalog') }}</span>
               </button>
               
               <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200/50 mt-2">
@@ -1791,8 +1788,8 @@
                     <mat-icon class="text-xl shrink-0 leading-none">account_balance</mat-icon>
                   </div>
                   <div>
-                    <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">Banco {{ selectedBankForDetail() }}</h1>
-                    <p class="text-xs text-zinc-400 mt-0.5 font-normal">Cuentas bancarias registradas en este banco, historial de operaciones en Ecuador.</p>
+                    <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ t('banks') }} {{ selectedBankForDetail() }}</h1>
+                    <p class="text-xs text-zinc-400 mt-0.5 font-normal">{{ t('banks_detail_desc') }}</p>
                   </div>
                 </div>
                 
@@ -1804,7 +1801,7 @@
                     type="text" 
                     [value]="bancosAccountSearchQuery()" 
                     (input)="bancosAccountSearchQuery.set($any($event.target).value); bancosAccountPage.set(1)"
-                    placeholder="Buscar número de cuenta..." 
+                    [placeholder]="t('search_account')" 
                     class="w-full text-xs pl-9 pr-4 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-zinc-700"
                   />
                 </div>
@@ -1815,102 +1812,102 @@
             <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
               <div class="overflow-x-auto">
                 <table class="w-full table-auto min-w-[700px]">
-                  <thead class="bg-zinc-50 border-b border-zinc-200">
-                    <tr>
+                  <thead class="bg-zinc-50 border-b border-zinc-300">
+                    <tr class="divide-x divide-zinc-200">
                       <th 
                         (click)="toggleBancosAccountSort('accountNumber')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('acc_number') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'accountNumber'" [class.text-zinc-300]="bancosAccountSortField() !== 'accountNumber'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'accountNumber'" [class.text-zinc-300]="bancosAccountSortField() !== 'accountNumber'">
                             {{ bancosAccountSortField() === 'accountNumber' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosAccountSort('activeSince')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('active_since') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'activeSince'" [class.text-zinc-300]="bancosAccountSortField() !== 'activeSince'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'activeSince'" [class.text-zinc-300]="bancosAccountSortField() !== 'activeSince'">
                             {{ bancosAccountSortField() === 'activeSince' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosAccountSort('queriesCount')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('chart_queries') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'queriesCount'" [class.text-zinc-300]="bancosAccountSortField() !== 'queriesCount'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'queriesCount'" [class.text-zinc-300]="bancosAccountSortField() !== 'queriesCount'">
                             {{ bancosAccountSortField() === 'queriesCount' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosAccountSort('lastQuery')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>{{ t('last_query') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'lastQuery'" [class.text-zinc-300]="bancosAccountSortField() !== 'lastQuery'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'lastQuery'" [class.text-zinc-300]="bancosAccountSortField() !== 'lastQuery'">
                             {{ bancosAccountSortField() === 'lastQuery' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosAccountSort('acceptanceRate')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
-                          <span>% {{ t('Dashboard') }}</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosAccountSortField() !== 'acceptanceRate'">
+                          <span>{{ t('confirmations_pct') }}</span>
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosAccountSortField() !== 'acceptanceRate'">
                             {{ bancosAccountSortField() === 'acceptanceRate' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
-                      <th class="px-6 py-4 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
                         {{ t('actions') }}
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100">
+                  <tbody class="divide-y divide-zinc-300">
                     @for (acc of paginatedBankAccounts(); track acc.accountNumber; let i = $index) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                          <span class="text-xs font-mono font-semibold text-zinc-700 bg-zinc-50 hover:bg-zinc-105 transition-all px-2.5 py-1 rounded-lg border border-zinc-200/50 select-all">{{ acc.accountNumber }}</span>
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
+                          <span class="text-[11px] font-mono font-semibold text-zinc-700 bg-zinc-50 hover:bg-zinc-100 transition-all px-2 py-0.5 rounded border border-zinc-200/50 select-all">{{ acc.accountNumber }}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-500">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
                           {{ acc.activeSince }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-zinc-600">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs font-mono text-zinc-600">
                           {{ acc.queriesCount }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-500">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
                           {{ acc.lastQuery }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (acc.acceptanceRate === 'N/A') {
-                            <span class="inline-flex text-[10px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-2 py-0.5 rounded">
+                            <span class="inline-flex text-[9px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-1.5 py-0.5 rounded">
                               N/A
                             </span>
                           } @else {
-                            <span class="inline-flex text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/50">
+                            <span class="inline-flex text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">
                               {{ acc.acceptanceRate }}
                             </span>
                           }
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           <button 
                             type="button"
                             (click)="viewAccountDetail(acc.accountNumber)"
-                            class="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                            class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
                             title="Ver detalles adicionales específicos de esta cuenta"
                           >
-                            <mat-icon class="text-base shrink-0 leading-none">visibility</mat-icon>
+                            <mat-icon class="text-[14px] shrink-0 leading-none">visibility</mat-icon>
                           </button>
                         </td>
                       </tr>
@@ -2022,104 +2019,104 @@
             <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
               <div class="overflow-x-auto">
                 <table class="w-full table-auto min-w-[700px]">
-                  <thead class="bg-zinc-50 border-b border-zinc-200">
-                    <tr>
+                  <thead class="bg-zinc-50 border-b border-zinc-300">
+                    <tr class="divide-x divide-zinc-200">
                       <th 
                         (click)="toggleBancosQuerySort('queryDate')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>Fecha de consulta</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'queryDate'" [class.text-zinc-300]="bancosQuerySortField() !== 'queryDate'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'queryDate'" [class.text-zinc-300]="bancosQuerySortField() !== 'queryDate'">
                             {{ bancosQuerySortField() === 'queryDate' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosQuerySort('fechaCobro')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>Fecha de cobro</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'fechaCobro'" [class.text-zinc-300]="bancosQuerySortField() !== 'fechaCobro'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'fechaCobro'" [class.text-zinc-300]="bancosQuerySortField() !== 'fechaCobro'">
                             {{ bancosQuerySortField() === 'fechaCobro' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosQuerySort('status')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>Estado de cobro</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'status'" [class.text-zinc-300]="bancosQuerySortField() !== 'status'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'status'" [class.text-zinc-300]="bancosQuerySortField() !== 'status'">
                             {{ bancosQuerySortField() === 'status' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
                       <th 
                         (click)="toggleBancosQuerySort('userPhone')"
-                        class="px-6 py-4 text-left text-[11px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100/80 select-none group transition-all"
+                        class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
                       >
                         <div class="flex items-center gap-1">
                           <span>Usuario</span>
-                          <mat-icon class="text-xs transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'userPhone'" [class.text-zinc-300]="bancosQuerySortField() !== 'userPhone'">
+                          <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'userPhone'" [class.text-zinc-300]="bancosQuerySortField() !== 'userPhone'">
                             {{ bancosQuerySortField() === 'userPhone' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
                           </mat-icon>
                         </div>
                       </th>
-                      <th class="px-6 py-4 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
                         Acciones
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100">
+                  <tbody class="divide-y divide-zinc-300">
                     @for (q of paginatedAccountQueries(); track q.id; let i = $index) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-600 font-medium">
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-medium">
                           {{ q.queryDateFormatted }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-500 font-mono">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500 font-mono">
                           {{ q.fechaCobroFormatted }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (q.status === 'Cobrado') {
-                            <span class="inline-flex text-[10px] font-bold text-emerald-800 bg-emerald-50 rounded px-2 py-0.5 border border-emerald-100">
+                            <span class="inline-flex text-[9px] font-bold text-emerald-800 bg-emerald-50 rounded px-1.5 py-0.5 border border-emerald-100">
                               Cobrado
                             </span>
                           } @else if (q.status === 'Rechazado') {
-                            <span class="inline-flex text-[10px] font-bold text-rose-800 bg-rose-50 rounded px-2 py-0.5 border border-rose-100">
+                            <span class="inline-flex text-[9px] font-bold text-rose-800 bg-rose-50 rounded px-1.5 py-0.5 border border-rose-100">
                               Rechazado
                             </span>
                           } @else if (q.status === 'En espera') {
-                            <span class="inline-flex text-[10px] font-bold text-amber-800 bg-amber-50 rounded px-2 py-0.5 border border-amber-100">
+                            <span class="inline-flex text-[9px] font-bold text-amber-800 bg-amber-50 rounded px-1.5 py-0.5 border border-amber-100">
                               En espera
                             </span>
                           } @else if (q.status === 'No reportado' || q.status === 'Pendiente de confirmación') {
-                            <span class="inline-flex text-[10px] font-semibold text-zinc-600 bg-zinc-50 rounded px-2 py-0.5 border border-zinc-200">
+                            <span class="inline-flex text-[9px] font-semibold text-zinc-600 bg-zinc-50 rounded px-1.5 py-0.5 border border-zinc-200">
                               No reportado
                             </span>
                           } @else if (q.status === 'Cuenta cerrada') {
-                            <span class="inline-flex text-[10px] font-semibold text-zinc-800 bg-zinc-200/65 rounded px-2 py-0.5 border border-zinc-300">
+                            <span class="inline-flex text-[9px] font-semibold text-zinc-800 bg-zinc-200/65 rounded px-1.5 py-0.5 border border-zinc-300">
                               Cuenta cerrada
                             </span>
                           } @else {
-                            <span class="inline-flex text-[10px] font-semibold text-zinc-500 bg-zinc-50 rounded px-2 py-0.5 border border-zinc-200">
+                            <span class="inline-flex text-[9px] font-semibold text-zinc-500 bg-zinc-50 rounded px-1.5 py-0.5 border border-zinc-200">
                               {{ q.status }}
                             </span>
                           }
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-xs text-zinc-700 font-mono select-all">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-700 font-mono select-all">
                           {{ q.userPhone }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           <button 
                             type="button"
                             (click)="selectTab('Usuarios'); viewUserDetail(q.userPhone)"
-                            class="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                            class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
                             title="Ver historial de este usuario en la sección de Usuarios"
                           >
-                            <mat-icon class="text-base shrink-0 leading-none">visibility</mat-icon>
+                            <mat-icon class="text-[14px] shrink-0 leading-none">visibility</mat-icon>
                           </button>
                         </td>
                       </tr>
@@ -2252,87 +2249,87 @@
               <div class="overflow-x-auto overflow-y-visible">
                 <table class="w-full text-left border-collapse" id="table-users-list">
                   <thead>
-                    <tr class="bg-zinc-50/75 border-b border-zinc-200/50 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <tr class="bg-zinc-50 border-b border-zinc-300 text-[11px] font-bold text-zinc-600 uppercase tracking-wider divide-x divide-zinc-200">
                       <!-- Teléfono -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('phone')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('phone')">
                         <div class="flex items-center gap-1.5">
-                          <span>Número</span>
+                          <span>{{ t('phone_user') }}</span>
                           @if (usersSortField() === 'phone') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- Activo desde -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('activeSince')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('activeSince')">
                         <div class="flex items-center gap-1.5">
-                          <span>Activo desde</span>
+                          <span>{{ t('active_since') }}</span>
                           @if (usersSortField() === 'activeSince') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- Estado -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('status')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('status')">
                         <div class="flex items-center gap-1.5">
-                          <span>Status</span>
+                          <span>{{ t('status') }}</span>
                           @if (usersSortField() === 'status') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- Consultas Totales -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right" (click)="toggleUsersSort('queriesCount')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right" (click)="toggleUsersSort('queriesCount')">
                         <div class="flex items-center justify-end gap-1.5">
-                          <span>Consultas en el sistema</span>
+                          <span>{{ t('total_queries') }}</span>
                           @if (usersSortField() === 'queriesCount') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- última consulta -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('lastQuery')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUsersSort('lastQuery')">
                         <div class="flex items-center gap-1.5">
-                          <span>Última consulta</span>
+                          <span>{{ t('last_query') }}</span>
                           @if (usersSortField() === 'lastQuery') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- % Confirmaciones -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right" (click)="toggleUsersSort('confirmationsPercentage')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right" (click)="toggleUsersSort('confirmationsPercentage')">
                         <div class="flex items-center justify-end gap-1.5">
-                          <span>% Confirmaciones</span>
+                          <span>{{ t('confirmations_pct') }}</span>
                           @if (usersSortField() === 'confirmationsPercentage') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ usersSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
                       <!-- Acciones -->
-                      <th class="px-6 py-4 text-center">Acciones</th>
+                      <th class="px-4 py-2 text-center text-zinc-400">{{ t('actions') }}</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100 text-xs">
+                  <tbody class="divide-y divide-zinc-300 text-xs">
                     @for (user of paginatedUsers(); track user.phone) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
                         <!-- Teléfono (Formatted with JetBrains Mono) -->
-                        <td class="px-6 py-4 whitespace-nowrap font-mono font-bold text-zinc-800">
+                        <td class="px-4 py-1.5 whitespace-nowrap font-mono font-bold text-zinc-800">
                           <div class="flex items-center gap-2">
                             <span>{{ user.phone }}</span>
                             @if (user.hasFraudAlert) {
-                              <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold font-sans bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wider animate-pulse" title="Alerta: Documento de pago fraudulento detectado anteriormente">
-                                <mat-icon class="text-[10px] w-2.5 h-2.5 flex items-center justify-center shrink-0 leading-none">error</mat-icon>
+                              <span class="inline-flex items-center gap-0.5 px-1 rounded text-[8px] font-bold font-sans bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wider animate-pulse" title="Alerta: Documento de pago fraudulento detectado anteriormente">
+                                <mat-icon class="text-[9px] w-2 h-2 flex items-center justify-center shrink-0 leading-none">error</mat-icon>
                                 Antifraude
                               </span>
                             }
@@ -2340,57 +2337,57 @@
                         </td>
                         
                         <!-- Activo desde -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-500 font-medium">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-500 font-medium font-sans">
                           {{ user.activeSince }}
                         </td>
                         
                         <!-- Status Badge -->
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (user.status === 'Pagado') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                              <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                               Pagado
                             </span>
                           } @else if (user.status === 'Gratis') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
-                              <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
+                              <span class="w-1 h-1 rounded-full bg-zinc-400"></span>
                               Gratis
                             </span>
                           } @else if (user.status === 'Bloqueado') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
+                              <span class="w-1 h-1 rounded-full bg-rose-500"></span>
                               Bloqueado
                             </span>
                           }
                         </td>
                         
                         <!-- Consultas total (Right matched) -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right font-semibold text-zinc-800 font-mono">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-right font-semibold text-zinc-800 font-mono text-[11px]">
                           {{ user.queriesCount }}
                         </td>
                         
                         <!-- última consulta -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-500 font-medium">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-550 font-medium font-sans">
                           {{ user.lastQuery }}
                         </td>
                         
                         <!-- % Confirmaciones -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                          <span class="font-bold text-zinc-800 font-mono">{{ user.confirmationsPercentage }}</span>
+                        <td class="px-4 py-1.5 whitespace-nowrap text-right font-bold text-zinc-800 font-mono">
+                          {{ user.confirmationsPercentage }}
                         </td>
 
                         <!-- Active actions buttons centering icons -->
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                          <div class="flex items-center justify-center gap-2">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-center">
+                          <div class="flex items-center justify-center gap-1.5">
                             <!-- Eye action -->
                             <button
                               id="btn-view-user-history-{{ user.phone }}"
                               type="button"
                               (click)="viewUserDetail(user.phone)"
-                              class="p-1.5 bg-zinc-50 hover:bg-emerald-50 text-zinc-600 hover:text-emerald-700 rounded-lg border border-zinc-200 hover:border-emerald-200 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center"
+                              class="p-1 bg-zinc-50 hover:bg-emerald-50 text-zinc-600 hover:text-emerald-700 rounded border border-zinc-200 hover:border-emerald-200 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center"
                               title="Ver historial de consultas de WhatsApp"
                             >
-                              <mat-icon class="text-sm shrink-0 leading-none">visibility</mat-icon>
+                              <mat-icon class="text-[14px] shrink-0 leading-none">visibility</mat-icon>
                             </button>
 
                             <!-- Money action -->
@@ -2398,10 +2395,10 @@
                               id="btn-view-user-purchases-{{ user.phone }}"
                               type="button"
                               (click)="viewUserPayments(user.phone)"
-                              class="p-1.5 bg-zinc-50 hover:bg-emerald-50 text-zinc-600 hover:text-emerald-700 rounded-lg border border-zinc-200 hover:border-emerald-200 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center placeholder:shadow-sm"
+                              class="p-1 bg-zinc-50 hover:bg-emerald-50 text-zinc-600 hover:text-emerald-700 rounded border border-zinc-200 hover:border-emerald-200 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center"
                               title="Ver historial de pagos de este usuario"
                             >
-                              <mat-icon class="text-sm shrink-0 leading-none">payments</mat-icon>
+                              <mat-icon class="text-[14px] shrink-0 leading-none">payments</mat-icon>
                             </button>
                           </div>
                         </td>
@@ -2539,123 +2536,123 @@
               <div class="overflow-x-auto overflow-y-visible">
                 <table class="w-full text-left border-collapse" id="table-user-history-queries">
                   <thead>
-                    <tr class="bg-zinc-50/75 border-b border-zinc-200/50 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <tr class="bg-zinc-50 border-b border-zinc-300 text-[11px] font-bold text-zinc-600 uppercase tracking-wider divide-x divide-zinc-200">
                       <!-- Fecha de consulta -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('queryDate')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('queryDate')">
                         <div class="flex items-center gap-1.5">
-                          <span>Fecha de consulta</span>
+                          <span>{{ t('query_date') }}</span>
                           @if (userQueriesSortField() === 'queryDate') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
 
                       <!-- Fecha de cobro -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('fechaCobro')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('fechaCobro')">
                         <div class="flex items-center gap-1.5">
-                          <span>Fecha de cobro</span>
+                          <span>{{ t('collection_date') }}</span>
                           @if (userQueriesSortField() === 'fechaCobro') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
 
                       <!-- Estado de cobro -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('status')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('status')">
                         <div class="flex items-center gap-1.5">
-                          <span>Estado de cobro</span>
+                          <span>{{ t('collection_status') }}</span>
                           @if (userQueriesSortField() === 'status') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
 
                       <!-- Banco -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('bankName')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('bankName')">
                         <div class="flex items-center gap-1.5">
-                          <span>Banco</span>
+                          <span>{{ t('banks') }}</span>
                           @if (userQueriesSortField() === 'bankName') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
 
                       <!-- Cuenta -->
-                      <th class="px-6 py-4 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('accountNumber')">
+                      <th class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none" (click)="toggleUserQueriesSort('accountNumber')">
                         <div class="flex items-center gap-1.5">
-                          <span>Cuenta</span>
+                          <span>{{ t('acc_number') }}</span>
                           @if (userQueriesSortField() === 'accountNumber') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ userQueriesSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100 text-xs text-zinc-700">
+                  <tbody class="divide-y divide-zinc-300 text-xs text-zinc-700">
                     @for (query of paginatedUserQueries(); track query.id) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
                         <!-- Fecha de consulta -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-500 font-medium">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-500 font-medium">
                           {{ query.queryDateFormatted }}
                         </td>
 
                         <!-- Fecha de cobro -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-550 font-medium font-mono">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-550 font-medium font-mono">
                           {{ query.fechaCobroFormatted }}
                         </td>
 
                         <!-- Estado de cobro Badge -->
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-center">
                           @if (query.status === 'Cobrado') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                              <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                               {{ t('status_cashed') }}
                             </span>
                           } @else if (query.status === 'Rechazado') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
+                              <span class="w-1 h-1 rounded-full bg-rose-500"></span>
                               {{ t('status_rejected') }}
                             </span>
                           } @else if (query.status === 'En espera') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-100">
+                              <span class="w-1 h-1 rounded-full bg-amber-400"></span>
                               {{ t('status_on_hold') }}
                             </span>
                           } @else if (query.status === 'No reportado') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-150 text-zinc-700 border border-zinc-200">
-                              <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-zinc-150 text-zinc-700 border border-zinc-200">
+                              <span class="w-1 h-1 rounded-full bg-zinc-400"></span>
                               {{ t('status_not_reported') }}
                             </span>
                           } @else if (query.status === 'Cuenta cerrada') {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-950 border border-rose-200">
-                              <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-950 border border-rose-200">
+                              <span class="w-1 h-1 rounded-full bg-rose-600"></span>
                               {{ t('status_closed_account') }}
                             </span>
                           } @else {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-50 text-zinc-500 border border-zinc-200/60">
-                              <span class="w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-zinc-50 text-zinc-500 border border-zinc-200/60">
+                              <span class="w-1 h-1 rounded-full bg-zinc-300"></span>
                               {{ t('status_pending') }}
                             </span>
                           }
                         </td>
 
                         <!-- Banco -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-800 font-bold">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-800 font-bold">
                           {{ query.bankName }}
                         </td>
 
                         <!-- Cuenta -->
-                        <td class="px-6 py-4 whitespace-nowrap font-mono text-zinc-650 font-semibold bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100">
+                        <td class="px-4 py-1.5 whitespace-nowrap font-mono text-zinc-650 font-semibold bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100">
                           {{ query.accountNumber }}
                         </td>
                       </tr>
@@ -2809,18 +2806,18 @@
               <div class="overflow-x-auto overflow-y-visible">
                 <table class="w-full text-left border-collapse" id="table-user-payments">
                   <thead>
-                    <tr class="bg-zinc-50/75 border-b border-zinc-200/50 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                    <tr class="bg-zinc-50 border-b border-zinc-300 text-[11px] font-bold text-zinc-600 uppercase tracking-wider divide-x divide-zinc-200">
                       <!-- Fecha de Pago -->
                       <th 
                         (click)="togglePaymentsSort('paymentDate')"
-                        class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none"
+                        class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none"
                       >
                         <div class="flex items-center gap-1.5">
                           <span>{{ t('payment_date') }}</span>
                           @if (paymentsSortField() === 'paymentDate') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
@@ -2828,14 +2825,14 @@
                       <!-- Valor pagado -->
                       <th 
                         (click)="togglePaymentsSort('amount')"
-                        class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none text-right"
+                        class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right"
                       >
                         <div class="flex items-center justify-end gap-1.5 font-bold">
                           <span>{{ t('amount_paid') }}</span>
                           @if (paymentsSortField() === 'amount') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300 font-bold">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-bold">import_export</mat-icon>
                           }
                         </div>
                       </th>
@@ -2843,14 +2840,14 @@
                       <!-- Saldo actual -->
                       <th 
                         (click)="togglePaymentsSort('currentBalance')"
-                        class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none text-right"
+                        class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none text-right"
                       >
                         <div class="flex items-center justify-end gap-1.5">
                           <span>{{ t('current_balance') }}</span>
                           @if (paymentsSortField() === 'currentBalance') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300">import_export</mat-icon>
                           }
                         </div>
                       </th>
@@ -2858,68 +2855,68 @@
                       <!-- Estado de cobro -->
                       <th 
                         (click)="togglePaymentsSort('status')"
-                        class="px-6 py-4 cursor-pointer hover:bg-zinc-105 transition-colors select-none"
+                        class="px-4 py-2 cursor-pointer hover:bg-zinc-100 transition-colors select-none"
                       >
                         <div class="flex items-center gap-1.5">
                           <span>{{ t('status') }}</span>
                           @if (paymentsSortField() === 'status') {
-                            <mat-icon class="text-xs text-sm select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                            <mat-icon class="text-[10px] select-none leading-none">{{ paymentsSortAsc() ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
                           } @else {
-                            <mat-icon class="text-xs text-zinc-300 font-semibold">import_export</mat-icon>
+                            <mat-icon class="text-[10px] text-zinc-300 font-semibold">import_export</mat-icon>
                           }
                         </div>
                       </th>
 
                       <!-- Acciones (Ver comprobante) -->
-                      <th class="px-6 py-4 text-center">{{ t('receipt') }}</th>
+                      <th class="px-4 py-2 text-center text-zinc-400">{{ t('receipt') }}</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-zinc-100 text-xs text-zinc-750">
+                  <tbody class="divide-y divide-zinc-300 text-xs text-zinc-750">
                     @for (py of paginatedUserPayments(); track py.id) {
-                      <tr class="hover:bg-zinc-50/50 transition-colors">
+                      <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
                         <!-- Fecha de Pago -->
-                        <td class="px-6 py-4 whitespace-nowrap text-zinc-500 font-medium">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-zinc-500 font-medium font-sans">
                           {{ py.paymentDateFormatted }}
                         </td>
 
                         <!-- Valor pagado -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-zinc-800 font-mono">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-right font-bold text-zinc-800 font-mono text-[11px]">
                           {{ py.amount | currency : 'USD' : 'symbol' : '1.2-2' }}
                         </td>
 
                         <!-- Saldo actual -->
-                        <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-zinc-500 font-mono">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-right font-medium text-zinc-500 font-mono text-[11px]">
                           {{ py.currentBalance | currency : 'USD' : 'symbol' : '1.2-2' }}
                         </td>
 
                         <!-- Estado de cobro -->
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-4 py-1.5 whitespace-nowrap text-center">
                           @if (py.status === 'Correcto') {
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                              <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                               {{ t('approved') }}
                             </span>
                           } @else if (py.status === 'Pendiente') {
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-100 animate-pulse">
-                              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-100 animate-pulse">
+                              <span class="w-1 h-1 rounded-full bg-amber-400"></span>
                               {{ t('status_pending_audit') }}
                             </span>
                           } @else {
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100" [title]="py.rejectReason || ''">
-                              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-rose-800 border border-rose-100" [title]="py.rejectReason || ''">
+                              <span class="w-1 h-1 rounded-full bg-rose-500"></span>
                               {{ t('status_rejected') }}
                             </span>
                           }
                         </td>
 
-                        <!-- Comprobante Button (3D action with scale-active animations) -->
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <!-- Comprobante Button -->
+                        <td class="px-4 py-1.5 whitespace-nowrap text-center">
                           <button
                             type="button"
                             (click)="openPaymentAuditModal(py)"
-                            class="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all outline-none cursor-pointer border-b-2 border-emerald-850 active:border-b-0 shadow-xs"
+                            class="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all outline-none cursor-pointer border-b-2 border-emerald-800 active:border-b-0 shadow-sm"
                           >
-                            <mat-icon class="text-xs leading-none">article</mat-icon>
+                            <mat-icon class="text-[12px] leading-none">article</mat-icon>
                             <span>{{ t('view_receipt') }}</span>
                           </button>
                         </td>

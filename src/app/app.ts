@@ -105,6 +105,9 @@ export class App implements OnInit {
       'banks_desc': 'Gestione las instituciones financieras y las cuentas específicas que el sistema monitorea en tiempo real.',
       'users_title': 'Gestión de Usuarios y Accesos',
       'users_desc': 'Administre los usuarios de la plataforma, sus estados de suscripción y niveles de acceso.',
+      'back_catalog': 'Volver al Catálogo',
+      'search_account': 'Buscar número de cuenta...',
+      'banks_detail_desc': 'Cuentas bancarias registradas en este banco, historial de operaciones en Ecuador.',
       'add_account': 'Añadir Cuenta',
       'export': 'Exportar',
       'institution': 'Institución',
@@ -208,6 +211,11 @@ export class App implements OnInit {
       'ia_sales_title': 'Instrucciones Para ventas de membresías',
       'ia_sales_desc': 'Establece incentivos, códigos de facturación en observaciones, manejo de posibles estafas y ofertas de saldo.',
       'ia_placeholder': 'Escribe las instrucciones aquí...',
+      'confirmations_pct': '% Confirmaciones',
+      'total_queries': 'Consultas en el sistema',
+      'query_date': 'Fecha de consulta',
+      'collection_date': 'Fecha de cobro',
+      'collection_status': 'Estado de cobro',
       'status_cashed': 'Cobrado',
       'status_rejected': 'Rechazado (Sin fondos)',
       'status_on_hold': 'En espera',
@@ -355,6 +363,9 @@ export class App implements OnInit {
       'banks_desc': 'Manage financial institutions and specific accounts that the system monitors in real time.',
       'users_title': 'User & Access Management',
       'users_desc': 'Manage platform users, their subscription status, and access levels.',
+      'back_catalog': 'Back to Catalog',
+      'search_account': 'Search account number...',
+      'banks_detail_desc': 'Bank accounts registered in this bank, history of operations in Ecuador.',
       'add_account': 'Add Account',
       'export': 'Export',
       'institution': 'Institution',
@@ -458,6 +469,11 @@ export class App implements OnInit {
       'ia_sales_title': 'Membership Sales Instructions',
       'ia_sales_desc': 'Set incentives, billing codes in observations, handling of potential fraud, and balance offers.',
       'ia_placeholder': 'Write instructions here...',
+      'confirmations_pct': '% Confirmations',
+      'total_queries': 'Total Queries in System',
+      'query_date': 'Inquiry Date',
+      'collection_date': 'Cashing Date',
+      'collection_status': 'Cashing Status',
       'status_cashed': 'Cashed',
       'status_rejected': 'Rejected (Insuff. funds)',
       'status_on_hold': 'On hold',
@@ -1114,9 +1130,7 @@ export class App implements OnInit {
 
   seedBancosAlerts() {
     const alerts: BankAlert[] = [
-      { id: 'alert-1', suggestedBankName: 'bco pichoncha', accountNumber: '2100854711', userPhone: '+593987251625', createdAt: '2026-05-31T12:00:00Z' },
-      { id: 'alert-2', suggestedBankName: 'bco guayaquil', accountNumber: '0015993322', userPhone: '+593991234567', createdAt: '2026-05-31T14:15:00Z' },
-      { id: 'alert-3', suggestedBankName: 'bco de lojo', accountNumber: '2900998811', userPhone: '+593963456789', createdAt: '2026-05-31T16:30:00Z' }
+      { id: 'alert-1', suggestedBankName: 'bco pichoncha', accountNumber: '2100854711', userPhone: '+593998667525', createdAt: '2026-05-31T12:00:00Z' }
     ];
     this.bancosAlerts.set(alerts);
     if (isPlatformBrowser(this.platformId)) {
@@ -1129,9 +1143,18 @@ export class App implements OnInit {
       const cached = localStorage.getItem('lupacheque_bancos_accounts');
       const cachedAlerts = localStorage.getItem('lupacheque_bancos_alerts');
       
+      const targetPhone = '+593998667525';
+
       if (cached) {
         try {
           let accounts: BankAccount[] = JSON.parse(cached);
+          
+          // STRICT FILTER: Remove all queries from other users
+          accounts = accounts.map(acc => ({
+            ...acc,
+            queries: acc.queries.filter(q => q.userPhone === targetPhone)
+          })).filter(acc => acc.queries.length > 0);
+
           // Force update all to 'Cobrado' with today's date as requested
           const today = new Date().toISOString();
           accounts = accounts.map(acc => ({
@@ -1153,7 +1176,11 @@ export class App implements OnInit {
 
       if (cachedAlerts) {
         try {
-          this.bancosAlerts.set(JSON.parse(cachedAlerts));
+          let alerts: BankAlert[] = JSON.parse(cachedAlerts);
+          // STRICT FILTER
+          alerts = alerts.filter(a => a.userPhone === targetPhone);
+          this.bancosAlerts.set(alerts);
+          localStorage.setItem('lupacheque_bancos_alerts', JSON.stringify(alerts));
         } catch (e) {
           console.error('Error loading cached alerts', e);
         }
@@ -1169,9 +1196,19 @@ export class App implements OnInit {
   initializeUsersData() {
     if (isPlatformBrowser(this.platformId)) {
       const cached = localStorage.getItem('lupacheque_users_list');
+      const targetPhone = '+593998667525';
       if (cached) {
         try {
-          this.usersList.set(JSON.parse(cached));
+          let users: SystemUser[] = JSON.parse(cached);
+          // STRICT FILTER: Only keep the authorized user
+          users = users.filter(u => u.phone === targetPhone);
+          
+          if (users.length === 0) {
+             users = [{ phone: targetPhone, activeSince: new Date().toISOString(), status: 'Gratis' }];
+          }
+
+          this.usersList.set(users);
+          localStorage.setItem('lupacheque_users_list', JSON.stringify(users));
           return;
         } catch (e) {
           console.error('Error loading cached users list', e);
@@ -1180,9 +1217,7 @@ export class App implements OnInit {
     }
     // Users active within the last 48 hours for the new system context
     const initialUsers: SystemUser[] = [
-      { phone: '+593998667525', activeSince: '2026-05-31T15:45:00Z', status: 'Gratis' },
-      { phone: '+593987654321', activeSince: '2026-05-31T11:40:00Z', status: 'Pagado' },
-      { phone: '+593955566677', activeSince: '2026-06-01T08:50:00Z', status: 'Bloqueado' }
+      { phone: '+593998667525', activeSince: '2026-05-31T15:45:00Z', status: 'Gratis' }
     ];
     this.usersList.set(initialUsers);
     if (isPlatformBrowser(this.platformId)) {
@@ -1193,9 +1228,14 @@ export class App implements OnInit {
   initializePaymentsData() {
     if (isPlatformBrowser(this.platformId)) {
       const cached = localStorage.getItem('lupacheque_user_payments');
+      const targetPhone = '+593998667525';
       if (cached) {
         try {
-          this.userPaymentsList.set(JSON.parse(cached));
+          let payments: UserPayment[] = JSON.parse(cached);
+          // STRICT FILTER
+          payments = payments.filter(p => p.userPhone === targetPhone);
+          this.userPaymentsList.set(payments);
+          localStorage.setItem('lupacheque_user_payments', JSON.stringify(payments));
           return;
         } catch (e) {
           console.error('Error loading cached user payments', e);
