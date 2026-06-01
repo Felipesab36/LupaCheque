@@ -808,7 +808,8 @@ export class App implements OnInit {
   initializeDashboardDates() {
     const end = new Date();
     const start = new Date();
-    start.setDate(end.getDate() - 30);
+    // Default to last 2 days as requested for the new system
+    start.setDate(end.getDate() - 1); 
     
     this.dashboardEndDate.set(end.toISOString().split('T')[0]);
     this.dashboardStartDate.set(start.toISOString().split('T')[0]);
@@ -917,50 +918,62 @@ export class App implements OnInit {
 
   // Bancos (Financial Institutions & Accounts management)
   // Chart Visualization Methods (SVG Path Generators using D3 logic)
-  getLinePath(data: { date: string, value: number }[], width: number, height: number): string {
-    if (!data.length) return '';
+  getPoints(data: { date: string, value: number }[], width: number, height: number) {
+    if (!data.length) return [];
     
-    const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+    const margin = { top: 30, right: 30, bottom: 30, left: 40 };
     const w = width - margin.left - margin.right;
     const h = height - margin.top - margin.bottom;
 
     const maxVal = Math.max(...data.map(d => d.value), 1);
-    
-    // Simple linear scale logic
     const xStep = data.length > 1 ? w / (data.length - 1) : w;
+
+    return data.map((d, i) => ({
+      x: margin.left + i * xStep,
+      y: margin.top + h - (d.value / maxVal * h),
+      value: d.value,
+      date: d.date
+    }));
+  }
+
+  getYAxisTicks(data: { date: string, value: number }[], height: number) {
+    if (!data.length) return [];
+    const maxVal = Math.max(...data.map(d => d.value), 1);
+    const margin = { top: 30, right: 30, bottom: 30, left: 40 };
+    const h = height - margin.top - margin.bottom;
     
-    let path = `M ${margin.left} ${margin.top + h - (data[0].value / maxVal * h)}`;
-    
-    data.forEach((d, i) => {
-      if (i === 0) return;
-      const x = margin.left + i * xStep;
-      const y = margin.top + h - (d.value / maxVal * h);
-      path += ` L ${x} ${y}`;
+    const tickCount = 4;
+    return Array.from({ length: tickCount + 1 }, (_, i) => {
+      const val = (maxVal / tickCount) * i;
+      return {
+        label: Math.round(val).toString(),
+        y: margin.top + h - (val / maxVal * h)
+      };
     });
+  }
+
+  getLinePath(data: { date: string, value: number }[], width: number, height: number): string {
+    const points = this.getPoints(data, width, height);
+    if (!points.length) return '';
     
+    let path = `M ${points[0].x} ${points[0].y}`;
+    points.forEach((p, i) => {
+      if (i === 0) return;
+      path += ` L ${p.x} ${p.y}`;
+    });
     return path;
   }
 
   getAreaPath(data: { date: string, value: number }[], width: number, height: number): string {
-    if (!data.length) return '';
+    const points = this.getPoints(data, width, height);
+    if (!points.length) return '';
     
-    const margin = { top: 10, right: 10, bottom: 20, left: 30 };
-    const w = width - margin.left - margin.right;
-    const h = height - margin.top - margin.bottom;
-
-    const maxVal = Math.max(...data.map(d => d.value), 1);
-    const xStep = data.length > 1 ? w / (data.length - 1) : w;
-    
-    let path = `M ${margin.left} ${margin.top + h}`; // Start at bottom left
-    
-    data.forEach((d, i) => {
-      const x = margin.left + i * xStep;
-      const y = margin.top + h - (d.value / maxVal * h);
-      path += ` L ${x} ${y}`;
+    const margin = { top: 30, right: 30, bottom: 30, left: 40 };
+    let path = `M ${points[0].x} ${height - margin.bottom}`;
+    points.forEach((p) => {
+      path += ` L ${p.x} ${p.y}`;
     });
-    
-    path += ` L ${margin.left + w} ${margin.top + h} Z`; // Close path to bottom right
-    
+    path += ` L ${points[points.length - 1].x} ${height - margin.bottom} Z`;
     return path;
   }
 
@@ -1165,10 +1178,11 @@ export class App implements OnInit {
         }
       }
     }
+    // Users active within the last 48 hours for the new system context
     const initialUsers: SystemUser[] = [
       { phone: '+593998667525', activeSince: '2026-05-31T15:45:00Z', status: 'Gratis' },
-      { phone: '+593987654321', activeSince: '2026-05-29T11:40:00Z', status: 'Pagado' },
-      { phone: '+593955566677', activeSince: '2026-05-27T16:50:00Z', status: 'Bloqueado' }
+      { phone: '+593987654321', activeSince: '2026-05-31T11:40:00Z', status: 'Pagado' },
+      { phone: '+593955566677', activeSince: '2026-06-01T08:50:00Z', status: 'Bloqueado' }
     ];
     this.usersList.set(initialUsers);
     if (isPlatformBrowser(this.platformId)) {
@@ -1188,53 +1202,21 @@ export class App implements OnInit {
         }
       }
     }
+    // Payments within the last 48 hours
     const initialPayments: UserPayment[] = [
       {
         id: 'pay-1',
         userPhone: '+593998667525',
-        paymentDate: '2026-05-31T18:00:00Z',
-        amount: 5.00,
+        paymentDate: '2026-06-01T08:00:00Z',
+        amount: 15.00,
         currentBalance: 0.00,
         status: 'Pendiente'
       },
       {
         id: 'pay-2',
         userPhone: '+593998667525',
-        paymentDate: '2026-05-30T10:00:00Z',
-        amount: 5.00,
-        currentBalance: 0.00,
-        status: 'Correcto'
-      },
-      {
-        id: 'pay-3',
-        userPhone: '+593999888777', // another phone or similar if needed
-        paymentDate: '2026-05-29T16:20:00Z',
-        amount: 2.50,
-        currentBalance: 0.00,
-        status: 'Pendiente'
-      },
-      {
-        id: 'pay-4',
-        userPhone: '+593998667525',
-        paymentDate: '2026-05-28T14:45:00Z',
-        amount: 2.50,
-        currentBalance: 0.00,
-        status: 'Rechazado (Sin fondos)',
-        rejectReason: 'Comprobante duplicado, ya usado en otra cuenta.'
-      },
-      {
-        id: 'pay-5',
-        userPhone: '+593998667525',
-        paymentDate: '2026-05-26T11:00:00Z',
-        amount: 10.00,
-        currentBalance: 0.00,
-        status: 'Correcto'
-      },
-      {
-        id: 'pay-6',
-        userPhone: '+593987654321',
-        paymentDate: '2026-05-29T09:15:00Z',
-        amount: 10.00,
+        paymentDate: '2026-05-31T10:00:00Z',
+        amount: 25.00,
         currentBalance: 0.00,
         status: 'Correcto'
       }
@@ -1246,7 +1228,6 @@ export class App implements OnInit {
   }
 
   runSeedAccounts() {
-    const todayStr = new Date().toISOString();
     const initialAccounts: BankAccount[] = [];
 
     const pichinchaAccs = ['2100014011', '2100101006', '2100202952', '2100300219', '2100211364', '2100295609', '3396217004', '2100018237', '2100333279', '3387972304', '3274225304', '2100203911'];
@@ -1269,6 +1250,10 @@ export class App implements OnInit {
       'Banco de Loja': lojaAccs
     };
 
+    const now = new Date();
+    const YESTERDAY = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const TODAY = now.toISOString();
+
     let queryIdCounter = 1;
     const uniqueBanks = Array.from(new Set(this.allBankNames));
     
@@ -1278,49 +1263,21 @@ export class App implements OnInit {
         initialAccounts.push({
           accountNumber: accNum,
           bankName: bankName,
-          createdAt: todayStr,
+          createdAt: YESTERDAY,
           queries: [
             {
               id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
+              queryDate: YESTERDAY,
               userPhone: '+593998667525',
               status: 'Cobrado',
-              fechaCobro: todayStr
+              fechaCobro: YESTERDAY
             },
             {
               id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
+              queryDate: TODAY,
               userPhone: '+593998667525',
               status: 'Cobrado',
-              fechaCobro: todayStr
-            },
-            {
-              id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
-              userPhone: '+593987654321',
-              status: 'Cobrado',
-              fechaCobro: todayStr
-            },
-            {
-              id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
-              userPhone: '+593998667525',
-              status: 'Cobrado',
-              fechaCobro: todayStr
-            },
-            {
-              id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
-              userPhone: '+593955566677',
-              status: 'Cobrado',
-              fechaCobro: todayStr
-            },
-            {
-              id: `q-${queryIdCounter++}`,
-              queryDate: todayStr,
-              userPhone: '+593998667525',
-              status: 'Cobrado',
-              fechaCobro: todayStr
+              fechaCobro: TODAY
             }
           ]
         });

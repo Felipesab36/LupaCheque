@@ -172,21 +172,21 @@
     <div class="flex-grow flex flex-col min-h-screen overflow-x-hidden" id="main-content-panel">
       
       <!-- Top Header -->
-      <header class="h-16 border-b border-zinc-200/70 bg-white flex items-center justify-between px-6 sticky top-0 z-30 shrink-0" id="top-header">
+      <header class="h-16 border-b border-orange-100/50 bg-orange-50/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50 shrink-0 transition-colors duration-500" id="top-header">
         
         <!-- Left space filler / current breadcrumb placeholder -->
         <div class="flex items-center gap-2">
-          <span class="text-[10px] font-bold text-zinc-300 tracking-widest select-none">LUPACHEQUE</span>
-          <span class="text-xs text-zinc-300">/</span>
-          <span class="text-xs font-bold text-emerald-700 tracking-wide uppercase">{{ t(selectedTab()) }}</span>
+          <span class="text-[10px] font-bold text-orange-300 tracking-widest select-none">LUPACHEQUE</span>
+          <span class="text-xs text-orange-200">/</span>
+          <span class="text-xs font-bold text-orange-700 tracking-wide uppercase">{{ t(selectedTab()) }}</span>
         </div>
 
         <!-- Center: Visual Language Selector -->
-        <div class="flex items-center justify-center bg-zinc-100/90 p-1 rounded-full border border-zinc-200/30 shrink-0" id="lang-selector">
+        <div class="flex items-center justify-center bg-white/60 backdrop-blur-sm p-1 rounded-full border border-orange-100/50 shrink-0" id="lang-selector">
           <button 
             (click)="setLanguage('es')"
             class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
-            [ngClass]="selectedLanguage() === 'es' ? 'bg-white text-emerald-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
+            [ngClass]="selectedLanguage() === 'es' ? 'bg-white text-orange-800 shadow-sm border-orange-100' : 'text-orange-900/60 hover:text-orange-900'"
             id="lang-es"
           >
             <span class="text-sm">🇪🇸</span>
@@ -196,7 +196,7 @@
           <button 
             (click)="setLanguage('en')"
             class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all font-medium cursor-pointer border border-transparent"
-            [ngClass]="selectedLanguage() === 'en' ? 'bg-white text-emerald-800 shadow-xs border-zinc-200/40' : 'text-zinc-500 hover:text-zinc-800'"
+            [ngClass]="selectedLanguage() === 'en' ? 'bg-white text-orange-800 shadow-sm border-orange-100' : 'text-orange-900/60 hover:text-orange-900'"
             id="lang-en"
           >
             <span class="text-sm">🇺🇸</span>
@@ -208,11 +208,11 @@
         <div class="flex items-center gap-3 shrink-0" id="header-profile-section">
           
           <!-- User info details -->
-          <div class="hidden sm:flex items-center gap-3 bg-zinc-50 border border-zinc-100 rounded-full pl-3.5 pr-1.5 py-1" id="profile-indicator">
-            <span class="text-[10px] font-bold text-zinc-500 font-mono uppercase tracking-wider select-none">
+          <div class="hidden sm:flex items-center gap-3 bg-white/40 border border-orange-100/40 rounded-full pl-3.5 pr-1.5 py-1" id="profile-indicator">
+            <span class="text-[10px] font-bold text-orange-700/60 font-mono uppercase tracking-wider select-none">
               {{ userRole }}
             </span>
-            <div class="relative w-8 h-8 bg-zinc-200 rounded-full overflow-hidden border-2 border-white shadow-sm">
+            <div class="relative w-8 h-8 bg-orange-100 rounded-full overflow-hidden border-2 border-white shadow-sm">
               <img 
                 [src]="userPhotoUrl()" 
                 alt="Google User" 
@@ -226,7 +226,7 @@
           <!-- Notification Bell Icon (Campana) -->
           <button 
             (click)="toggleAlerts()"
-            class="relative p-2.5 text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all cursor-pointer outline-none shrink-0 border border-transparent hover:border-emerald-100" 
+            class="relative p-2.5 text-orange-600 hover:text-orange-800 hover:bg-orange-100/50 rounded-xl transition-all cursor-pointer outline-none shrink-0 border border-transparent hover:border-orange-100" 
             [title]="t('alerts')"
             id="btn-notifications"
           >
@@ -239,12 +239,12 @@
             }
           </button>
 
-          <div class="w-px h-6 bg-zinc-200 mx-1"></div>
+          <div class="w-px h-6 bg-orange-200/40 mx-1"></div>
 
           <!-- Logout Button (Cerrar sesión) -->
           <button 
             (click)="logout()"
-            class="p-2.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer outline-none border border-transparent hover:border-rose-100 shrink-0"
+            class="p-2.5 text-orange-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer outline-none border border-transparent hover:border-rose-100 shrink-0"
             [title]="t('logout')"
             id="btn-logout"
           >
@@ -277,65 +277,65 @@
 
           <!-- Metric Cards -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Card 1: Banks (Emerald) -->
-            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('banks')">
-              <div class="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-sm shrink-0">
+            <!-- Card 1: Banks (Orange Pastel) -->
+            <div class="bg-orange-50 border border-orange-100 rounded-3xl p-6 shadow-[0_8px_30px_-10px_rgba(251,146,60,0.1),0_10px_15px_-3px_rgba(251,146,60,0.05)] hover:shadow-xl transition-all group relative overflow-hidden ring-1 ring-white/50" [title]="t('banks')">
+              <div class="absolute right-0 top-0 w-32 h-32 bg-orange-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700 blur-2xl"></div>
+              <div class="flex items-center gap-4 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-white text-orange-600 flex items-center justify-center border border-orange-100 shadow-[0_4px_12px_rgba(251,146,60,0.1)] shrink-0 transition-transform group-hover:-translate-y-1">
                   <mat-icon class="text-3xl">account_balance</mat-icon>
                 </div>
                 <div>
-                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ totalBancos() }}</h3>
-                  <p class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{{ t('banks') }}</p>
+                  <h3 class="text-3xl font-bold text-orange-950 tracking-tight leading-none mb-1">{{ totalBancos() }}</h3>
+                  <p class="text-[10px] font-bold text-orange-700/80 uppercase tracking-widest">{{ t('banks') }}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Card 2: Users (Rose) -->
-            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('users')">
-              <div class="absolute right-0 top-0 w-24 h-24 bg-rose-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shadow-sm shrink-0">
+            <!-- Card 2: Users (Green Pastel) -->
+            <div class="bg-emerald-50 border border-emerald-100 rounded-3xl p-6 shadow-[0_8px_30px_-10px_rgba(16,185,129,0.1),0_10px_15px_-3px_rgba(16,185,129,0.05)] hover:shadow-xl transition-all group relative overflow-hidden ring-1 ring-white/50" [title]="t('users')">
+              <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700 blur-2xl"></div>
+              <div class="flex items-center gap-4 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-[0_4px_12px_rgba(16,185,129,0.1)] shrink-0 transition-transform group-hover:-translate-y-1">
                   <mat-icon class="text-3xl">people</mat-icon>
                 </div>
                 <div>
-                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ totalUsuarios() }}</h3>
-                  <p class="text-xs font-semibold text-rose-700 uppercase tracking-wider">{{ t('users') }}</p>
+                  <h3 class="text-3xl font-bold text-emerald-950 tracking-tight leading-none mb-1">{{ totalUsuarios() }}</h3>
+                  <p class="text-[10px] font-bold text-emerald-700/80 uppercase tracking-widest">{{ t('users') }}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Card 3: Queries (Violet) -->
-            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('queries_today')">
-              <div class="absolute right-0 top-0 w-24 h-24 bg-violet-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 shadow-sm shrink-0">
+            <!-- Card 3: Queries (Blue Pastel) -->
+            <div class="bg-sky-50 border border-sky-100 rounded-3xl p-6 shadow-[0_8px_30px_-10px_rgba(14,165,233,0.1),0_10px_15px_-3px_rgba(14,165,233,0.05)] hover:shadow-xl transition-all group relative overflow-hidden ring-1 ring-white/50" [title]="t('queries_today')">
+              <div class="absolute right-0 top-0 w-32 h-32 bg-sky-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700 blur-2xl"></div>
+              <div class="flex items-center gap-4 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-white text-sky-600 flex items-center justify-center border border-sky-100 shadow-[0_4px_12px_rgba(14,165,233,0.1)] shrink-0 transition-transform group-hover:-translate-y-1">
                   <mat-icon class="text-3xl">help_outline</mat-icon>
                 </div>
                 <div>
-                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">{{ queriesHoy() }}</h3>
-                  <p class="text-xs font-semibold text-violet-700 uppercase tracking-wider">{{ t('queries_today') }}</p>
+                  <h3 class="text-3xl font-bold text-sky-950 tracking-tight leading-none mb-1">{{ queriesHoy() }}</h3>
+                  <p class="text-[10px] font-bold text-sky-700/80 uppercase tracking-widest">{{ t('queries_today') }}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Card 4: Revenue (Amber) -->
-            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group relative overflow-hidden" [title]="t('revenue_today')">
-              <div class="absolute right-0 top-0 w-24 h-24 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500"></div>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shadow-sm shrink-0">
+            <!-- Card 4: Revenue (Indigo Pastel) -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-[0_8px_30px_-10px_rgba(99,102,241,0.1),0_10px_15px_-3px_rgba(99,102,241,0.05)] hover:shadow-xl transition-all group relative overflow-hidden ring-1 ring-white/50" [title]="t('revenue_today')">
+              <div class="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700 blur-2xl"></div>
+              <div class="flex items-center gap-4 relative z-10">
+                <div class="w-14 h-14 rounded-2xl bg-white text-indigo-600 flex items-center justify-center border border-indigo-100 shadow-[0_4px_12px_rgba(99,102,241,0.1)] shrink-0 transition-transform group-hover:-translate-y-1">
                   <mat-icon class="text-3xl">payments</mat-icon>
                 </div>
                 <div>
-                  <h3 class="text-3xl font-bold text-zinc-900 tracking-tight">${{ ingresosHoy() | number:'1.2-2' }}</h3>
-                  <p class="text-xs font-semibold text-amber-700 uppercase tracking-wider">{{ t('revenue_today') }}</p>
+                  <h3 class="text-3xl font-bold text-indigo-950 tracking-tight leading-none mb-1">${{ ingresosHoy() | number:'1.2-2' }}</h3>
+                  <p class="text-[10px] font-bold text-indigo-700/80 uppercase tracking-widest">{{ t('revenue_today') }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Evolution Charts Section -->
-          <div class="bg-white border border-zinc-200/60 rounded-3xl p-8 shadow-xs space-y-10">
+          <div class="bg-white border border-zinc-200/60 rounded-3xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)] space-y-10">
             <h2 class="text-lg font-bold text-zinc-800 tracking-tight flex items-center gap-2">
               <mat-icon class="text-emerald-600">trending_up</mat-icon>
               {{ t('evolution_trends') }}
@@ -348,17 +348,50 @@
                   <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_accs') }}</span>
                   <span class="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{{ accountsTrendData().length }} {{ t('days') }}</span>
                 </div>
-                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                <div class="h-44 relative group/chart border-b border-zinc-100">
+                  <div class="absolute left-0 top-0 h-full w-px bg-zinc-100"></div>
+                  <!-- Vertical Axis Labels -->
+                  <div class="absolute left-0 top-0 h-full -ml-8 flex flex-col justify-between items-end pr-2 text-[9px] text-zinc-400 select-none">
+                    @for (tick of getYAxisTicks(accountsTrendData(), 150); track tick.label) {
+                      <span [style.top.px]="tick.y">{{ tick.label }}</span>
+                    }
+                  </div>
+                  
                   <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <!-- Vertical Axis Title -->
+                    <text transform="rotate(-90)" x="-75" y="-30" class="fill-zinc-400 text-[8px] font-bold uppercase tracking-widest" text-anchor="middle">Cantidad</text>
+
+                    <!-- Grid horizontal lines -->
+                    @for (tick of getYAxisTicks(accountsTrendData(), 150); track tick.label) {
+                      <line x1="40" [attr.y1]="tick.y" x2="270" [attr.y2]="tick.y" stroke="rgba(228, 228, 231, 0.4)" stroke-dasharray="2,2" />
+                    }
+
                     <path [attr.d]="getAreaPath(accountsTrendData(), 300, 150)" class="fill-emerald-500/5 transition-all duration-500" />
                     <path [attr.d]="getLinePath(accountsTrendData(), 300, 150)" class="stroke-emerald-500 fill-none stroke-2 transition-all duration-500" />
+                    
+                    <!-- Points and Values -->
+                    @for (p of getPoints(accountsTrendData(), 300, 150); track p.date; let i = $index) {
+                      <g class="cursor-pointer group/point">
+                        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="fill-white stroke-emerald-500 stroke-2 group-hover/point:r-5 transition-all" />
+                        <!-- Value Box - Always visible if > 0 or last point -->
+                        @if (p.value > 0 || i === accountsTrendData().length - 1) {
+                          <g [attr.transform]="'translate(' + (p.x - 9) + ',' + (p.y - 18) + ')'" class="transition-opacity">
+                            <rect width="18" height="12" rx="3" class="fill-emerald-500 shadow-[0_2px_4px_rgba(16,185,129,0.2)]" />
+                            <text x="9" y="8.5" text-anchor="middle" class="fill-white text-[8px] font-bold">{{ p.value }}</text>
+                          </g>
+                        }
+                      </g>
+                    }
                   </svg>
                 </div>
                 <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
                   <span>{{ dashboardStartDate() }}</span>
                   <span>{{ dashboardEndDate() }}</span>
                 </div>
-                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('daily_activity') }}</p>
+                <p class="text-[10px] text-zinc-300 text-center italic font-sans flex items-center justify-center gap-1">
+                  <mat-icon class="text-xs">info</mat-icon>
+                  {{ t('daily_activity') }}
+                </p>
               </div>
 
               <!-- Chart 2: Queries -->
@@ -367,17 +400,49 @@
                   <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_queries') }}</span>
                   <span class="text-xs font-mono text-violet-600 font-bold bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-100">{{ queriesTrendData().length }} {{ t('days') }}</span>
                 </div>
-                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                <div class="h-44 relative group/chart border-b border-zinc-100">
+                  <div class="absolute left-0 top-0 h-full w-px bg-zinc-100"></div>
+                  <!-- Vertical Axis Labels -->
+                  <div class="absolute left-0 top-0 h-full -ml-8 flex flex-col justify-between items-end pr-2 text-[9px] text-zinc-400 select-none">
+                    @for (tick of getYAxisTicks(queriesTrendData(), 150); track tick.label) {
+                      <span [style.top.px]="tick.y">{{ tick.label }}</span>
+                    }
+                  </div>
+
                   <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <!-- Vertical Axis Title -->
+                    <text transform="rotate(-90)" x="-75" y="-30" class="fill-zinc-400 text-[8px] font-bold uppercase tracking-widest" text-anchor="middle">Cantidad</text>
+
+                    <!-- Grid horizontal lines -->
+                    @for (tick of getYAxisTicks(queriesTrendData(), 150); track tick.label) {
+                      <line x1="40" [attr.y1]="tick.y" x2="270" [attr.y2]="tick.y" stroke="rgba(228, 228, 231, 0.4)" stroke-dasharray="2,2" />
+                    }
+
                     <path [attr.d]="getAreaPath(queriesTrendData(), 300, 150)" class="fill-violet-500/5 transition-all duration-500" />
                     <path [attr.d]="getLinePath(queriesTrendData(), 300, 150)" class="stroke-violet-500 fill-none stroke-2 transition-all duration-500" />
+                    
+                    <!-- Points and Values -->
+                    @for (p of getPoints(queriesTrendData(), 300, 150); track p.date; let i = $index) {
+                      <g class="cursor-pointer group/point">
+                        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="fill-white stroke-violet-500 stroke-2 group-hover/point:r-5 transition-all" />
+                        @if (p.value > 0 || i === queriesTrendData().length - 1) {
+                          <g [attr.transform]="'translate(' + (p.x - 9) + ',' + (p.y - 18) + ')'" class="transition-opacity">
+                            <rect width="18" height="12" rx="3" class="fill-violet-500 shadow-[0_2px_4px_rgba(139,92,246,0.2)]" />
+                            <text x="9" y="8.5" text-anchor="middle" class="fill-white text-[8px] font-bold">{{ p.value }}</text>
+                          </g>
+                        }
+                      </g>
+                    }
                   </svg>
                 </div>
                 <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
                   <span>{{ dashboardStartDate() }}</span>
                   <span>{{ dashboardEndDate() }}</span>
                 </div>
-                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('processed_vol') }}</p>
+                <p class="text-[10px] text-zinc-300 text-center italic font-sans flex items-center justify-center gap-1">
+                  <mat-icon class="text-xs">info</mat-icon>
+                  {{ t('processed_vol') }}
+                </p>
               </div>
 
               <!-- Chart 3: Revenue -->
@@ -386,17 +451,49 @@
                   <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">{{ t('chart_revenue') }}</span>
                   <span class="text-xs font-mono text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100">{{ incomeTrendData().length }} {{ t('days') }}</span>
                 </div>
-                <div class="h-44 border-b border-l border-zinc-100 relative group/chart">
+                <div class="h-44 relative group/chart border-b border-zinc-100">
+                  <div class="absolute left-0 top-0 h-full w-px bg-zinc-100"></div>
+                  <!-- Vertical Axis Labels -->
+                  <div class="absolute left-0 top-0 h-full -ml-8 flex flex-col justify-between items-end pr-2 text-[9px] text-zinc-400 select-none">
+                    @for (tick of getYAxisTicks(incomeTrendData(), 150); track tick.label) {
+                      <span [style.top.px]="tick.y">{{ tick.label }}</span>
+                    }
+                  </div>
+
                   <svg viewBox="0 0 300 150" class="w-full h-full overflow-visible">
+                    <!-- Vertical Axis Title -->
+                    <text transform="rotate(-90)" x="-75" y="-30" class="fill-zinc-400 text-[8px] font-bold uppercase tracking-widest" text-anchor="middle">Cantidad</text>
+
+                    <!-- Grid horizontal lines -->
+                    @for (tick of getYAxisTicks(incomeTrendData(), 150); track tick.label) {
+                      <line x1="40" [attr.y1]="tick.y" x2="270" [attr.y2]="tick.y" stroke="rgba(228, 228, 231, 0.4)" stroke-dasharray="2,2" />
+                    }
+
                     <path [attr.d]="getAreaPath(incomeTrendData(), 300, 150)" class="fill-amber-500/5 transition-all duration-500" />
                     <path [attr.d]="getLinePath(incomeTrendData(), 300, 150)" class="stroke-amber-500 fill-none stroke-2 transition-all duration-500" />
+                    
+                    <!-- Points and Values -->
+                    @for (p of getPoints(incomeTrendData(), 300, 150); track p.date; let i = $index) {
+                      <g class="cursor-pointer group/point">
+                        <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="fill-white stroke-amber-500 stroke-2 group-hover/point:r-5 transition-all" />
+                        @if (p.value > 0 || i === incomeTrendData().length - 1) {
+                          <g [attr.transform]="'translate(' + (p.x - 9) + ',' + (p.y - 18) + ')'" class="transition-opacity">
+                            <rect width="18" height="12" rx="3" class="fill-amber-500 shadow-[0_2px_4px_rgba(245,158,11,0.2)]" />
+                            <text x="9" y="8.5" text-anchor="middle" class="fill-white text-[8px] font-bold">{{ p.value }}</text>
+                          </g>
+                        }
+                      </g>
+                    }
                   </svg>
                 </div>
                 <div class="flex justify-between text-[9px] text-zinc-400 font-medium px-1">
                   <span>{{ dashboardStartDate() }}</span>
                   <span>{{ dashboardEndDate() }}</span>
                 </div>
-                <p class="text-[10px] text-zinc-400 text-center italic font-sans">{{ t('accumulated_income') }}</p>
+                <p class="text-[10px] text-zinc-300 text-center italic font-sans flex items-center justify-center gap-1">
+                  <mat-icon class="text-xs">info</mat-icon>
+                  {{ t('accumulated_income') }}
+                </p>
               </div>
             </div>
           </div>
@@ -419,8 +516,8 @@
               </div>
             </div>
 
-            <!-- Main Layout Card (White background, elegant boundaries) -->
-            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 md:p-8 shadow-xs max-w-4xl mx-auto w-full space-y-8">
+            <!-- Main Layout Card (Full width, elegant boundaries) -->
+            <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 md:p-8 shadow-xs w-full space-y-8">
               
               <div class="flex items-center gap-2.5 pb-2 border-b border-zinc-100">
                 <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
@@ -432,11 +529,11 @@
                 </div>
               </div>
 
-              <!-- Two Column Grid for inputs -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Multi Column Grid for inputs (optimizing horizontal space) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- Nombre -->
-                <div class="space-y-1.5 md:col-span-2">
+                <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_name') }}</span>
                   <input 
                     type="text"
@@ -453,7 +550,7 @@
                 </div>
 
                 <!-- RUC -->
-                <div class="space-y-1.5">
+                <div class="space-y-1.5 lg:col-span-1">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_ruc') }}</span>
                   <input 
                     type="text"
@@ -469,25 +566,8 @@
                   }
                 </div>
 
-                <!-- Teléfono -->
-                <div class="space-y-1.5">
-                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_phone') }}</span>
-                  <input 
-                    type="text"
-                    formControlName="telefono"
-                    [placeholder]="t('fiscal_phone')"
-                    class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
-                    [class.border-red-500]="isFacturacionFieldInvalid('telefono')"
-                    [class.border-zinc-200]="!isFacturacionFieldInvalid('telefono')"
-                    [title]="t('fiscal_phone')"
-                  />
-                  @if (isFacturacionFieldInvalid('telefono')) {
-                    <p class="text-[10px] text-red-500 font-sans">{{ t('phone_required') }}</p>
-                  }
-                </div>
-
                 <!-- Dirección -->
-                <div class="space-y-1.5 md:col-span-2">
+                <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_address') }}</span>
                   <input 
                     type="text"
@@ -500,6 +580,23 @@
                   />
                   @if (isFacturacionFieldInvalid('direccion')) {
                     <p class="text-[10px] text-red-500 font-sans">{{ t('address_required') }}</p>
+                  }
+                </div>
+
+                <!-- Teléfono -->
+                <div class="space-y-1.5 lg:col-span-1">
+                  <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_phone') }}</span>
+                  <input 
+                    type="text"
+                    formControlName="telefono"
+                    [placeholder]="t('fiscal_phone')"
+                    class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+                    [class.border-red-500]="isFacturacionFieldInvalid('telefono')"
+                    [class.border-zinc-200]="!isFacturacionFieldInvalid('telefono')"
+                    [title]="t('fiscal_phone')"
+                  />
+                  @if (isFacturacionFieldInvalid('telefono')) {
+                    <p class="text-[10px] text-red-500 font-sans">{{ t('phone_required') }}</p>
                   }
                 </div>
 
@@ -547,8 +644,11 @@
                   }
                 </div>
 
+                <!-- Empty space or alignment filler if needed, but let's place P12 in its own full row -->
+                <div class="hidden lg:block lg:col-span-1"></div>
+
                 <!-- P12 File drag and drop space -->
-                <div class="space-y-1.5 md:col-span-2">
+                <div class="space-y-1.5 md:col-span-2 lg:col-span-3">
                   <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_p12') }}</span>
                   
                   <div 
