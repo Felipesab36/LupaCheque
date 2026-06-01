@@ -592,8 +592,34 @@ export class App implements OnInit {
   userPhotoUrl = signal('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80');
 
   // Multi-step alerts and notifications
-  hasAlerts = signal(true);
-  notificationCount = signal(3);
+  showAlertsDropdown = signal(false);
+  
+  allNotifications = computed(() => {
+    const bankAlerts = this.bancosAlerts().map(a => ({
+      id: a.id,
+      type: 'bank' as const,
+      title: 'Nuevo Banco a Estandarizar',
+      description: `${a.suggestedBankName} - ${a.accountNumber}`,
+      date: a.createdAt,
+      data: a
+    }));
+
+    const paymentAlerts = this.userPaymentsList()
+      .filter(p => p.status === 'Pendiente')
+      .map(p => ({
+        id: p.id,
+        type: 'payment' as const,
+        title: 'Pago por Auditar',
+        description: `Usuario: ${p.userPhone} - ${p.amount}$`,
+        date: p.paymentDate,
+        data: p
+      }));
+
+    return [...bankAlerts, ...paymentAlerts].sort((a, b) => b.date.localeCompare(a.date));
+  });
+
+  notificationCount = computed(() => this.allNotifications().length);
+  hasAlerts = computed(() => this.notificationCount() > 0);
   
   // Real authentication states
   loginError = signal<string | null>(null);
@@ -3004,11 +3030,23 @@ export class App implements OnInit {
   }
 
   toggleAlerts() {
-    this.hasAlerts.set(!this.hasAlerts());
-    if (!this.hasAlerts()) {
-      this.notificationCount.set(0);
-    } else {
-      this.notificationCount.set(3);
+    this.showAlertsDropdown.update(v => !v);
+  }
+
+  handleNotificationClick(notif: { id: string; type: 'bank' | 'payment'; data: any }) {
+    this.showAlertsDropdown.set(false);
+    if (notif.type === 'bank') {
+      this.selectedTab.set('Bancos');
+      // Find the index of this alert in the alerts array
+      const index = this.bancosAlerts().findIndex(a => a.id === notif.id);
+      this.openAlertModal();
+      if (index !== -1) {
+        this.currentAlertIndex.set(index);
+      }
+    } else if (notif.type === 'payment') {
+      this.selectedTab.set('Usuarios');
+      // For payments, we need to show the audit modal
+      this.openPaymentAuditModal(notif.data);
     }
   }
 

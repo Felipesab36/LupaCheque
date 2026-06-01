@@ -224,20 +224,73 @@
           </div>
 
           <!-- Notification Bell Icon (Campana) -->
-          <button 
-            (click)="toggleAlerts()"
-            class="relative p-2.5 text-orange-600 hover:text-orange-800 hover:bg-orange-100/50 rounded-xl transition-all cursor-pointer outline-none shrink-0 border border-transparent hover:border-orange-100" 
-            [title]="t('alerts')"
-            id="btn-notifications"
-          >
-            <mat-icon class="text-xl">notifications</mat-icon>
-            
-            @if (hasAlerts()) {
-              <span class="absolute top-1.5 right-1.5 min-w-4 h-4 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full px-1 border border-white shadow-xs animate-pulse">
-                {{ notificationCount() }}
-              </span>
+          <div class="relative">
+            <button 
+              (click)="toggleAlerts()"
+              class="relative p-2.5 text-orange-600 hover:text-orange-800 hover:bg-orange-100/50 rounded-xl transition-all cursor-pointer outline-none shrink-0 border border-transparent hover:border-orange-100" 
+              [title]="t('alerts')"
+              id="btn-notifications"
+            >
+              <mat-icon class="text-xl">notifications</mat-icon>
+              
+              @if (hasAlerts()) {
+                <span class="absolute top-1.5 right-1.5 min-w-4 h-4 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full px-1 border border-white shadow-xs animate-pulse">
+                  {{ notificationCount() }}
+                </span>
+              }
+            </button>
+
+            <!-- Alerts Dropdown -->
+            @if (showAlertsDropdown()) {
+              <div class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-orange-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div class="p-4 border-b border-orange-50 bg-orange-50/30 flex items-center justify-between">
+                  <h3 class="text-xs font-bold text-orange-950 uppercase tracking-wider">{{ t('alerts') }}</h3>
+                  <span class="text-[10px] font-bold bg-orange-200/50 text-orange-800 px-1.5 py-0.5 rounded-full">{{ notificationCount() }} pendientes</span>
+                </div>
+                
+                <div class="max-h-[350px] overflow-y-auto">
+                  @if (allNotifications().length === 0) {
+                    <div class="p-8 text-center">
+                      <div class="w-12 h-12 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <mat-icon class="text-zinc-300">notifications_none</mat-icon>
+                      </div>
+                      <p class="text-xs text-zinc-400 font-medium">No hay alertas pendientes</p>
+                    </div>
+                  } @else {
+                    @for (notif of allNotifications(); track notif.id) {
+                      <button 
+                        (click)="handleNotificationClick(notif)"
+                        class="w-full text-left p-4 border-b border-zinc-50 hover:bg-zinc-50 transition-colors flex gap-3 group outline-none"
+                      >
+                        <div class="p-2 rounded-lg shrink-0 flex items-center justify-center"
+                          [class.bg-emerald-50]="notif.type === 'bank'"
+                          [class.text-emerald-600]="notif.type === 'bank'"
+                          [class.bg-orange-50]="notif.type === 'payment'"
+                          [class.text-orange-600]="notif.type === 'payment'"
+                        >
+                          <mat-icon class="text-sm leading-none">{{ notif.type === 'bank' ? 'account_balance' : 'payments' }}</mat-icon>
+                        </div>
+                        <div class="flex-grow">
+                          <p class="text-xs font-bold text-zinc-900 group-hover:text-emerald-700 transition-colors">{{ notif.title }}</p>
+                          <p class="text-[10px] text-zinc-500 mt-0.5 line-clamp-1 italic">{{ notif.description }}</p>
+                          <p class="text-[9px] text-zinc-400 mt-1 font-mono uppercase">{{ notif.date | date:'dd/MM/yyyy HH:mm' }}</p>
+                        </div>
+                      </button>
+                    }
+                  }
+                </div>
+
+                <div class="p-2 bg-zinc-50/50 border-t border-zinc-100">
+                  <button 
+                    (click)="showAlertsDropdown.set(false)"
+                    class="w-full py-2 text-[10px] font-bold text-zinc-400 hover:text-zinc-600 transition-colors uppercase tracking-widest outline-none"
+                  >
+                    {{ t('close_audit_view') }}
+                  </button>
+                </div>
+              </div>
             }
-          </button>
+          </div>
 
           <div class="w-px h-6 bg-orange-200/40 mx-1"></div>
 
