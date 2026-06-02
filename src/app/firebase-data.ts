@@ -52,6 +52,53 @@ export interface VisitorUser {
   createdAt?: string;
 }
 
+export interface BankQuery {
+  id: string;
+  queryDate: string;
+  userPhone: string;
+  status: 'Cobrado' | 'Rechazado' | 'En espera' | 'No reportado' | 'Cuenta cerrada' | 'Pendiente de confirmación';
+  fechaCobro?: string;
+  facturaUrl?: string;
+}
+
+export interface BankAccount {
+  id?: string;
+  accountNumber: string;
+  bankName: string;
+  createdAt: string;
+  queries: BankQuery[];
+}
+
+export interface BankAlert {
+  id: string;
+  suggestedBankName: string;
+  accountNumber: string;
+  userPhone: string;
+  createdAt: string;
+  resolved?: boolean;
+}
+
+export interface SystemUser {
+  id?: string;
+  phone: string;
+  activeSince: string;
+  status: 'Gratis' | 'Pagado' | 'Bloqueado';
+  hasFraudAlert?: boolean;
+}
+
+export interface UserPayment {
+  id?: string;
+  userPhone: string;
+  paymentDate: string;
+  amount: number;
+  currentBalance: number;
+  status: 'Pendiente' | 'Correcto' | 'Rechazado (Sin fondos)';
+  rejectReason?: string;
+  receiptUrl?: string;
+  paymentDateFormatted?: string;
+  paymentDateRaw?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -89,8 +136,8 @@ export class FirebaseData {
       const q = collection(db, path);
       const snapshot = await getDocs(q);
       const list: AdminUser[] = [];
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() } as AdminUser);
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as AdminUser);
       });
 
       // Ensure that emprende@biia-dots.com is ALWAYS in the list
@@ -147,8 +194,8 @@ export class FirebaseData {
       const q = collection(db, path);
       const snapshot = await getDocs(q);
       const list: VisitorUser[] = [];
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() } as VisitorUser);
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as VisitorUser);
       });
       return list;
     } catch (error) {
@@ -192,6 +239,168 @@ export class FirebaseData {
       await deleteDoc(doc(db, 'visitors', id));
     } catch (error) {
       this.handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  }
+
+  // --- Banks CRUD ---
+  async getBanks(): Promise<BankAccount[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    try {
+      const q = collection(db, 'banks');
+      const snapshot = await getDocs(q);
+      const list: BankAccount[] = [];
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as BankAccount);
+      });
+      return list;
+    } catch (error) {
+      console.warn('Fallback to local banks due to:', error);
+      return [];
+    }
+  }
+
+  async saveBank(bank: BankAccount): Promise<void> {
+    const path = 'banks';
+    try {
+      if (bank.id) {
+        await setDoc(doc(db, path, bank.id), { ...bank });
+      } else {
+        await addDoc(collection(db, path), { ...bank });
+      }
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  }
+
+  async deleteBank(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'banks', id));
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.DELETE, `banks/${id}`);
+    }
+  }
+
+  // --- Bank Alerts CRUD ---
+  async getBankAlerts(): Promise<BankAlert[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    try {
+      const snapshot = await getDocs(collection(db, 'bank_alerts'));
+      const list: BankAlert[] = [];
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as BankAlert);
+      });
+      return list;
+    } catch {
+      return [];
+    }
+  }
+
+  async saveBankAlert(alert: BankAlert): Promise<void> {
+    try {
+      if (alert.id) {
+        await setDoc(doc(db, 'bank_alerts', alert.id), { ...alert });
+      } else {
+        await addDoc(collection(db, 'bank_alerts'), { ...alert });
+      }
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, 'bank_alerts');
+    }
+  }
+
+  async deleteBankAlert(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'bank_alerts', id));
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.DELETE, `bank_alerts/${id}`);
+    }
+  }
+
+  // --- Users CRUD ---
+  async getUsers(): Promise<SystemUser[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      const list: SystemUser[] = [];
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as SystemUser);
+      });
+      return list;
+    } catch {
+      return [];
+    }
+  }
+
+  async saveUser(user: SystemUser): Promise<void> {
+    try {
+      if (user.id) {
+        await setDoc(doc(db, 'users', user.id), { ...user });
+      } else if (user.phone) {
+        // Use phone as ID for consistency in this app
+        await setDoc(doc(db, 'users', user.phone), { ...user });
+      } else {
+        await addDoc(collection(db, 'users'), { ...user });
+      }
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, 'users');
+    }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'users', id));
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.DELETE, `users/${id}`);
+    }
+  }
+
+  // --- Payments CRUD ---
+  async getPayments(): Promise<UserPayment[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    try {
+      const snapshot = await getDocs(collection(db, 'payments'));
+      const list: UserPayment[] = [];
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as UserPayment);
+      });
+      return list;
+    } catch {
+      return [];
+    }
+  }
+
+  async savePayment(payment: UserPayment): Promise<void> {
+    try {
+      if (payment.id) {
+        await setDoc(doc(db, 'payments', payment.id), { ...payment });
+      } else {
+        await addDoc(collection(db, 'payments'), { ...payment });
+      }
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, 'payments');
+    }
+  }
+
+  // --- Settings (Singleton Documents) ---
+  async getSettings(id: string): Promise<unknown | null> {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    try {
+      const res = await getDocs(collection(db, 'settings'));
+      const specificDoc = res.docs.find(d => d.id === id);
+      return specificDoc ? specificDoc.data()['data'] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async saveSettings(id: string, data: unknown): Promise<void> {
+    const path = `settings/${id}`;
+    try {
+      await setDoc(doc(db, 'settings', id), {
+        data,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, path);
     }
   }
 }

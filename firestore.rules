@@ -2,27 +2,113 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Global Deny Catch-All
+    // 1. Global Deny Catch-All
     match /{document=**} {
       allow read, write: if false;
     }
 
+    // --- Helper Functions ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isSuperAdmin() {
-      return isSignedIn() && (request.auth.token.email == 'emprende@biia-dots.com');
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
-    // Admins Collection Rules
+    function isAdmin() {
+      // Hardcoded superadmin and anyone in the admins collection
+      return isEmailVerified() && (
+        request.auth.token.email == 'emprende@biia-dots.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['email', 'twoFactor', 'createdAt']) &&
+             data.keys().size() == 3 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.twoFactor is bool &&
+             data.createdAt is string;
+    }
+
+    function isValidVisitor(data) {
+      return data.keys().hasAll(['email', 'validFrom', 'validTo', 'twoFactor', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.email is string &&
+             data.validFrom is string &&
+             data.validTo is string &&
+             data.twoFactor is bool &&
+             data.createdAt is string;
+    }
+
+    function isValidBank(data) {
+      return data.keys().hasAll(['accountNumber', 'bankName', 'createdAt', 'queries']) &&
+             data.accountNumber is string &&
+             data.bankName is string &&
+             data.queries is list;
+    }
+
+    function isValidAlert(data) {
+      return data.keys().hasAll(['suggestedBankName', 'accountNumber', 'userPhone', 'createdAt']) &&
+             data.suggestedBankName is string &&
+             data.accountNumber is string &&
+             data.userPhone is string;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['phone', 'activeSince', 'status']) &&
+             data.phone is string &&
+             data.status in ['Pagado', 'Gratis', 'Bloqueado'];
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['userPhone', 'paymentDate', 'amount', 'currentBalance', 'status']) &&
+             data.userPhone is string &&
+             data.amount is number &&
+             data.status in ['Correcto', 'Pendiente', 'Rechazado (Sin fondos)'];
+    }
+
+    function isValidSettings(data) {
+      return data.keys().hasAll(['data', 'updatedAt']) &&
+             data.data is map &&
+             data.updatedAt is string;
+    }
+
+    // --- Collection Rules ---
+
     match /admins/{adminId} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isAdmin();
     }
 
-    // Visitors Collection Rules
     match /visitors/{visitorId} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isAdmin();
+    }
+
+    match /banks/{bankId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /bank_alerts/{alertId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
     }
   }
 }

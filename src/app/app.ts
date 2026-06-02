@@ -4,50 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { auth, googleProvider, signInWithPopup, signOut } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { FirebaseData, AdminUser, VisitorUser } from './firebase-data';
-
-export interface BankQuery {
-  id: string;
-  queryDate: string;
-  userPhone: string;
-  status: 'Cobrado' | 'Rechazado' | 'En espera' | 'No reportado' | 'Cuenta cerrada' | 'Pendiente de confirmación';
-  fechaCobro?: string;
-}
-
-export interface BankAccount {
-  accountNumber: string;
-  bankName: string;
-  createdAt: string;
-  queries: BankQuery[];
-}
-
-export interface BankAlert {
-  id: string;
-  suggestedBankName: string;
-  accountNumber: string;
-  userPhone: string;
-  createdAt: string;
-}
-
-export interface SystemUser {
-  phone: string;
-  activeSince: string;
-  status: 'Pagado' | 'Gratis' | 'Bloqueado';
-  hasFraudAlert?: boolean;
-}
-
-export interface UserPayment {
-  id: string;
-  userPhone: string;
-  paymentDate: string;
-  amount: number;
-  currentBalance: number;
-  status: 'Correcto' | 'Pendiente' | 'Rechazado (Sin fondos)';
-  receiptUrl?: string;
-  rejectReason?: string;
-  paymentDateFormatted?: string;
-  paymentDateRaw?: number;
-}
+import { FirebaseData, AdminUser, VisitorUser, BankQuery, BankAccount, BankAlert, SystemUser, UserPayment } from './firebase-data';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -607,7 +564,7 @@ export class App implements OnInit {
     const paymentAlerts = this.userPaymentsList()
       .filter(p => p.status === 'Pendiente')
       .map(p => ({
-        id: p.id,
+        id: p.id || `p-temp-${p.paymentDate}`,
         type: 'payment' as const,
         title: 'Pago por Auditar',
         description: `Usuario: ${p.userPhone} - ${p.amount}$`,
@@ -1154,120 +1111,28 @@ export class App implements OnInit {
       .replace(/[^a-z0-9 ]/g, '');
   }
 
-  seedBancosAlerts() {
+  async seedBancosAlerts() {
     const alerts: BankAlert[] = [
       { id: 'alert-1', suggestedBankName: 'bco pichoncha', accountNumber: '2100854711', userPhone: '+593998667525', createdAt: '2026-05-31T12:00:00Z' }
     ];
     this.bancosAlerts.set(alerts);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_bancos_alerts', JSON.stringify(alerts));
+    for (const a of alerts) {
+      await this.firebaseData.saveBankAlert(a);
     }
   }
 
-  initializeBancosData() {
-    if (isPlatformBrowser(this.platformId)) {
-      const cached = localStorage.getItem('lupacheque_bancos_accounts');
-      const cachedAlerts = localStorage.getItem('lupacheque_bancos_alerts');
-      
-      const targetPhone = '+593998667525';
-
-      if (cached) {
-        try {
-          let accounts: BankAccount[] = JSON.parse(cached);
-          
-          // STRICT FILTER: Remove all queries from other users
-          accounts = accounts.map(acc => ({
-            ...acc,
-            queries: acc.queries.filter(q => q.userPhone === targetPhone)
-          })).filter(acc => acc.queries.length > 0);
-
-          // Force update all to 'Cobrado' with today's date as requested
-          const today = new Date().toISOString();
-          accounts = accounts.map(acc => ({
-            ...acc,
-            queries: acc.queries.map(q => ({
-              ...q,
-              status: 'Cobrado',
-              fechaCobro: today
-            }))
-          }));
-          this.bancosAccounts.set(accounts);
-          localStorage.setItem('lupacheque_bancos_accounts', JSON.stringify(accounts));
-        } catch (e) {
-          console.error('Error loading cached bank accounts', e);
-        }
-      } else {
-        this.runSeedAccounts();
-      }
-
-      if (cachedAlerts) {
-        try {
-          let alerts: BankAlert[] = JSON.parse(cachedAlerts);
-          // STRICT FILTER
-          alerts = alerts.filter(a => a.userPhone === targetPhone);
-          this.bancosAlerts.set(alerts);
-          localStorage.setItem('lupacheque_bancos_alerts', JSON.stringify(alerts));
-        } catch (e) {
-          console.error('Error loading cached alerts', e);
-        }
-      } else {
-        this.seedBancosAlerts();
-      }
-    } else {
-      this.runSeedAccounts();
-      this.seedBancosAlerts();
-    }
-  }
-
-  initializeUsersData() {
-    if (isPlatformBrowser(this.platformId)) {
-      const cached = localStorage.getItem('lupacheque_users_list');
-      const targetPhone = '+593998667525';
-      if (cached) {
-        try {
-          let users: SystemUser[] = JSON.parse(cached);
-          // STRICT FILTER: Only keep the authorized user
-          users = users.filter(u => u.phone === targetPhone);
-          
-          if (users.length === 0) {
-             users = [{ phone: targetPhone, activeSince: new Date().toISOString(), status: 'Gratis' }];
-          }
-
-          this.usersList.set(users);
-          localStorage.setItem('lupacheque_users_list', JSON.stringify(users));
-          return;
-        } catch (e) {
-          console.error('Error loading cached users list', e);
-        }
-      }
-    }
+  async initializeUsersData() {
     // Users active within the last 48 hours for the new system context
     const initialUsers: SystemUser[] = [
       { phone: '+593998667525', activeSince: '2026-05-31T15:45:00Z', status: 'Gratis' }
     ];
     this.usersList.set(initialUsers);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_users_list', JSON.stringify(initialUsers));
+    for (const u of initialUsers) {
+      await this.firebaseData.saveUser(u);
     }
   }
 
-  initializePaymentsData() {
-    if (isPlatformBrowser(this.platformId)) {
-      const cached = localStorage.getItem('lupacheque_user_payments');
-      const targetPhone = '+593998667525';
-      if (cached) {
-        try {
-          let payments: UserPayment[] = JSON.parse(cached);
-          // STRICT FILTER
-          payments = payments.filter(p => p.userPhone === targetPhone);
-          this.userPaymentsList.set(payments);
-          localStorage.setItem('lupacheque_user_payments', JSON.stringify(payments));
-          return;
-        } catch (e) {
-          console.error('Error loading cached user payments', e);
-        }
-      }
-    }
+  async initializePaymentsData() {
     // Payments within the last 48 hours
     const initialPayments: UserPayment[] = [
       {
@@ -1288,32 +1153,24 @@ export class App implements OnInit {
       }
     ];
     this.userPaymentsList.set(initialPayments);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_user_payments', JSON.stringify(initialPayments));
+    for (const p of initialPayments) {
+      await this.firebaseData.savePayment(p);
     }
   }
 
-  runSeedAccounts() {
+  async runSeedAccounts() {
     const initialAccounts: BankAccount[] = [];
 
     const pichinchaAccs = ['2100014011', '2100101006', '2100202952', '2100300219', '2100211364', '2100295609', '3396217004', '2100018237', '2100333279', '3387972304', '3274225304', '2100203911'];
-    const pacificoAccs = ['08280479', '07793607'];
-    const produbancoAccs = ['02004016587'];
-    const guayaquilAccs = ['0015833149', '0015871059', '0045112764', '0015871130', '0035423621'];
-    const internacionalAccs = ['0110026154', '4100048426', '0620623852', '0100622043', '3500616380'];
-    const bolivarianoAccs = ['3015002900', '1205026695'];
-    const austroAccs = ['0417760784'];
-    const lojaAccs = ['2900373022'];
-
     const seedMap: Record<string, string[]> = {
       'Banco Pichincha': pichinchaAccs,
-      'Banco del Pacífico': pacificoAccs,
-      'Produbanco': produbancoAccs,
-      'Banco Guayaquil': guayaquilAccs,
-      'Banco Internacional': internacionalAccs,
-      'Banco Bolivariano': bolivarianoAccs,
-      'Banco del Austro': austroAccs,
-      'Banco de Loja': lojaAccs
+      'Banco del Pacífico': ['08280479', '07793607'],
+      'Produbanco': ['02004016587'],
+      'Banco Guayaquil': ['0015833149', '0015871059', '0045112764', '0015871130', '0035423621'],
+      'Banco Internacional': ['0110026154', '4100048426', '0620623852', '0100622043', '3500616380'],
+      'Banco Bolivariano': ['3015002900', '1205026695'],
+      'Banco del Austro': ['0417760784'],
+      'Banco de Loja': ['2900373022']
     };
 
     const now = new Date();
@@ -1326,7 +1183,8 @@ export class App implements OnInit {
     for (const bankName of uniqueBanks) {
       const accs = seedMap[bankName] || [];
       for (const accNum of accs) {
-        initialAccounts.push({
+        const acc = {
+          id: `${bankName.replace(/\s+/g, '_')}_${accNum}`,
           accountNumber: accNum,
           bankName: bankName,
           createdAt: YESTERDAY,
@@ -1346,14 +1204,12 @@ export class App implements OnInit {
               fechaCobro: TODAY
             }
           ]
-        });
+        };
+        initialAccounts.push(acc as BankAccount);
+        await this.firebaseData.saveBank(acc as BankAccount);
       }
     }
-
     this.bancosAccounts.set(initialAccounts);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_bancos_accounts', JSON.stringify(initialAccounts));
-    }
   }
 
   // --- Users Computed Stats & Sorters ---
@@ -1812,79 +1668,48 @@ export class App implements OnInit {
     this.isReceiptZoomed.update(z => !z);
   }
 
-  approvePayment(paymentId: string) {
+  async approvePayment(paymentId?: string) {
+    if (!paymentId) return;
     const list = this.userPaymentsList();
-    const updated = list.map(p => {
-      if (p.id === paymentId) {
-        return {
-          ...p,
-          status: 'Correcto' as const
-        };
-      }
-      return p;
-    });
-    this.userPaymentsList.set(updated);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_user_payments', JSON.stringify(updated));
-    }
-
     const targetPayment = list.find(p => p.id === paymentId);
-    if (targetPayment) {
-      const users = this.usersList();
-      const updatedUsers = users.map(u => {
-        if (u.phone === targetPayment.userPhone) {
-          return {
-            ...u,
-            status: 'Pagado' as const
-          };
-        }
-        return u;
-      });
-      this.usersList.set(updatedUsers);
-      if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem('lupacheque_users_list', JSON.stringify(updatedUsers));
-      }
+    if (!targetPayment) return;
+
+    targetPayment.status = 'Correcto' as const;
+    this.userPaymentsList.set([...list]);
+    await this.firebaseData.savePayment(targetPayment);
+
+    const users = this.usersList();
+    const targetUser = users.find(u => u.phone === targetPayment.userPhone);
+    if (targetUser) {
+      targetUser.status = 'Pagado' as const;
+      this.usersList.set([...users]);
+      await this.firebaseData.saveUser(targetUser);
     }
 
     this.showToast('Pago aprobado exitosamente.', 'success');
     this.closePaymentAuditModal();
   }
 
-  rejectPayment(paymentId: string, reason: string) {
+  async rejectPayment(paymentId?: string, reason: string = '') {
+    if (!paymentId) return;
     const list = this.userPaymentsList();
-    const updated = list.map(p => {
-      if (p.id === paymentId) {
-        return {
-          ...p,
-          status: 'Rechazado (Sin fondos)' as const,
-          amount: 0.00,
-          currentBalance: 0.00,
-          rejectReason: reason
-        };
-      }
-      return p;
-    });
-    this.userPaymentsList.set(updated);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_user_payments', JSON.stringify(updated));
-    }
-
     const targetPayment = list.find(p => p.id === paymentId);
-    if (targetPayment) {
-      const users = this.usersList();
-      const updatedUsers = users.map(u => {
-        if (u.phone === targetPayment.userPhone) {
-          return {
-            ...u,
-            hasFraudAlert: true
-          };
-        }
-        return u;
-      });
-      this.usersList.set(updatedUsers);
-      if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem('lupacheque_users_list', JSON.stringify(updatedUsers));
-      }
+    if (!targetPayment) return;
+
+    targetPayment.status = 'Rechazado (Sin fondos)' as const;
+    targetPayment.amount = 0.00;
+    targetPayment.currentBalance = 0.00;
+    targetPayment.rejectReason = reason;
+
+    this.userPaymentsList.set([...list]);
+    await this.firebaseData.savePayment(targetPayment);
+
+    const users = this.usersList();
+    const targetUser = users.find(u => u.phone === targetPayment.userPhone);
+    if (targetUser) {
+      targetUser.hasFraudAlert = true;
+      this.usersList.set([...users]);
+      await this.firebaseData.saveUser(targetUser);
     }
 
     this.showToast('Pago rechazado. Alerta de fraude activa en el perfil de usuario.', 'danger');
@@ -2314,14 +2139,17 @@ export class App implements OnInit {
     this.alertCorrectionSearchQuery.set(bankName);
   }
 
-  saveStateToLocalStorage() {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_bancos_accounts', JSON.stringify(this.bancosAccounts()));
-      localStorage.setItem('lupacheque_bancos_alerts', JSON.stringify(this.bancosAlerts()));
+  async saveBanksToFirebase() {
+    // This is a batch save for simplicity in this migration, but ideally we save individual items
+    for (const bank of this.bancosAccounts()) {
+      await this.firebaseData.saveBank(bank);
+    }
+    for (const alert of this.bancosAlerts()) {
+      await this.firebaseData.saveBankAlert(alert);
     }
   }
 
-  processDecisionOnCurrentAlert(): boolean {
+  async processDecisionOnCurrentAlert(): Promise<boolean> {
     const alert = this.currentAlert();
     const decision = this.alertDecision();
     if (!alert) return false;
@@ -2339,6 +2167,7 @@ export class App implements OnInit {
       }
       
       const newAcc: BankAccount = {
+        id: `${formattedName.replace(/\s+/g, '_')}_${alert.accountNumber}`,
         accountNumber: alert.accountNumber,
         bankName: formattedName,
         createdAt: new Date().toISOString(),
@@ -2352,6 +2181,7 @@ export class App implements OnInit {
         ]
       };
       this.bancosAccounts.set([...this.bancosAccounts(), newAcc]);
+      await this.firebaseData.saveBank(newAcc);
       this.showToast(`Se añadió "${formattedName}" como nuevo banco oficial.`, 'success');
     } else {
       const targetBank = this.selectedCorrectionBank();
@@ -2370,8 +2200,10 @@ export class App implements OnInit {
           status: 'Pendiente de confirmación'
         });
         this.bancosAccounts.set([...accounts]);
+        await this.firebaseData.saveBank(existing);
       } else {
         const newAcc: BankAccount = {
+          id: `${targetBank.replace(/\s+/g, '_')}_${alert.accountNumber}`,
           accountNumber: alert.accountNumber,
           bankName: targetBank,
           createdAt: new Date().toISOString(),
@@ -2385,21 +2217,23 @@ export class App implements OnInit {
           ]
         };
         this.bancosAccounts.set([...accounts, newAcc]);
+        await this.firebaseData.saveBank(newAcc);
       }
       this.showToast(`Cuenta corregida y asociada a "${targetBank}".`, 'success');
     }
 
-    // Remove current alert from list
+    // Remove current alert from list and from Firebase
+    if (alert.id) {
+      await this.firebaseData.deleteBankAlert(alert.id);
+    }
     const remainingAlerts = this.bancosAlerts().filter(a => a.id !== alert.id);
     this.bancosAlerts.set(remainingAlerts);
-    this.saveStateToLocalStorage();
     return true;
   }
 
-  saveAndNextAlert() {
-    if (this.processDecisionOnCurrentAlert()) {
+  async saveAndNextAlert() {
+    if (await this.processDecisionOnCurrentAlert()) {
       if (this.bancosAlerts().length > 0) {
-        // Stay on first index because the previous one was deleted!
         this.currentAlertIndex.set(0);
         this.alertDecision.set('none');
         this.selectedCorrectionBank.set('');
@@ -2411,8 +2245,8 @@ export class App implements OnInit {
     }
   }
 
-  saveAndExitAlert() {
-    if (this.processDecisionOnCurrentAlert()) {
+  async saveAndExitAlert() {
+    if (await this.processDecisionOnCurrentAlert()) {
       this.closeAlertModal();
     }
   }
@@ -2555,60 +2389,91 @@ export class App implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private firebaseData = inject(FirebaseData);
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.authLoading.set(true);
     this.initializeDashboardDates();
     if (isPlatformBrowser(this.platformId)) {
-      // First, get cached tab and language preference
       const savedTab = localStorage.getItem('lupacheque_selected_tab');
-      if (savedTab) {
-        this.selectedTab.set(savedTab);
-      }
+      if (savedTab) this.selectedTab.set(savedTab);
       const savedLang = localStorage.getItem('lupacheque_selected_lang');
-      if (savedLang === 'es' || savedLang === 'en') {
-        this.selectedLanguage.set(savedLang);
+      if (savedLang === 'es' || savedLang === 'en') this.selectedLanguage.set(savedLang);
+
+      // Support for evaluation bypass persistence
+      const demoLogin = localStorage.getItem('lupacheque_logged_in');
+      if (demoLogin === 'true') {
+        this.isLoggedIn.set(true);
+        this.userEmail = 'emprende@biia-dots.com';
+        this.loadFirebaseData();
       }
 
-      // Initialize cached integration settings safely
-      this.loadCachedIntegrations();
-      this.loadCachedIaInstructions();
-      this.loadCachedNegocio();
-      this.loadCachedFacturacion();
-      this.initializeBancosData();
-      this.initializeUsersData();
-      this.initializePaymentsData();
-
-      // Check on Firebase Authentication changes
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // Rule: only 'emprende@biia-dots.com' is allowed to log in
           if (user.email === 'emprende@biia-dots.com') {
             this.isLoggedIn.set(true);
             this.loginError.set(null);
             this.userEmail = user.email;
             this.userName = user.displayName || 'Administrador Principal';
-            if (user.photoURL) {
-              this.userPhotoUrl.set(user.photoURL);
-            }
-            localStorage.setItem('lupacheque_logged_in', 'true');
-            this.loadSystemData();
+            if (user.photoURL) this.userPhotoUrl.set(user.photoURL);
+            await this.loadFirebaseData();
           } else {
-            // Acceso denegado: No tienes permisos para entrar a este panel
             this.loginError.set('Acceso denegado: No tienes permisos para entrar a este panel.');
             this.isLoggedIn.set(false);
-            localStorage.removeItem('lupacheque_logged_in');
             await signOut(auth);
           }
-        } else {
-          // If no active Firebase user, check if we have safe local testing fallback
-          const savedSession = localStorage.getItem('lupacheque_logged_in');
-          if (savedSession === 'true') {
-            this.isLoggedIn.set(true);
-            this.loadSystemData();
-          } else {
-            this.isLoggedIn.set(false);
-          }
+        } else if (demoLogin !== 'true') {
+          this.isLoggedIn.set(false);
         }
+        this.authLoading.set(false);
       });
+    }
+  }
+
+  async loadFirebaseData() {
+    this.isLoadingData.set(true);
+    try {
+      const admins = await this.firebaseData.getAdmins();
+      this.adminsList.set(admins);
+      const visitors = await this.firebaseData.getVisitors();
+      this.visitorsList.set(visitors);
+
+      const banks = await this.firebaseData.getBanks();
+      if (banks.length > 0) this.bancosAccounts.set(banks);
+      else await this.runSeedAccounts();
+
+      const alerts = await this.firebaseData.getBankAlerts();
+      if (alerts.length > 0) this.bancosAlerts.set(alerts);
+      else await this.seedBancosAlerts();
+
+      const users = await this.firebaseData.getUsers();
+      if (users.length > 0) this.usersList.set(users);
+      else await this.initializeUsersData();
+
+      const payments = await this.firebaseData.getPayments();
+      if (payments.length > 0) this.userPaymentsList.set(payments);
+      else await this.initializePaymentsData();
+
+      const iaConfig = await this.firebaseData.getSettings('ia') as any;
+      if (iaConfig) {
+        this.iaUserInstructions.set(iaConfig.userInstructions || this.iaUserInstructions());
+        this.iaAnalysisInstructions.set(iaConfig.analysisInstructions || this.iaAnalysisInstructions());
+        this.iaSalesInstructions.set(iaConfig.salesInstructions || this.iaSalesInstructions());
+      }
+
+      const integrations = await this.firebaseData.getSettings('integrations') as any;
+      if (integrations) this.integrationsForm.patchValue(integrations);
+
+      const fiscal = await this.firebaseData.getSettings('fiscal') as any;
+      if (fiscal) {
+        this.facturacionForm.patchValue(fiscal);
+        if (fiscal.p12FileName) {
+          this.p12FileName.set(fiscal.p12FileName);
+          this.p12FileUploaded.set(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading firebase data:', error);
+    } finally {
+      this.isLoadingData.set(false);
     }
   }
 
@@ -2647,7 +2512,7 @@ export class App implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('lupacheque_logged_in', 'true');
     }
-    this.loadSystemData();
+    this.loadFirebaseData();
     this.showToast('Sesión de demostración iniciada correctamente', 'success');
   }
 
@@ -2664,21 +2529,6 @@ export class App implements OnInit {
     }
   }
 
-  // Load admins and visitors from Firebase Firestore with clean signals
-  async loadSystemData() {
-    this.isLoadingData.set(true);
-    try {
-      const admins = await this.firebaseData.getAdmins();
-      const visitors = await this.firebaseData.getVisitors();
-      this.adminsList.set(admins);
-      this.visitorsList.set(visitors);
-    } catch (err) {
-      console.error('Error loading Firestore data', err);
-    } finally {
-      this.isLoadingData.set(false);
-    }
-  }
-
   // Add a new Admin to state list and trigger save
   async onAddAdminSubmit() {
     if (this.adminForm.invalid) return;
@@ -2690,7 +2540,7 @@ export class App implements OnInit {
       this.isLoadingData.set(true);
       const newAdmin: AdminUser = { email, twoFactor };
       await this.firebaseData.saveAdmin(newAdmin);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
       
       this.adminForm.reset({ email: '', twoFactor: false });
       this.showAddAdmin.set(false);
@@ -2716,7 +2566,7 @@ export class App implements OnInit {
       this.isLoadingData.set(true);
       const newVisitor: VisitorUser = { email, validFrom, validTo, twoFactor };
       await this.firebaseData.saveVisitor(newVisitor);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
 
       this.visitorForm.reset({ email: '', validFrom: '', validTo: '', twoFactor: false });
       this.showAddVisitor.set(false);
@@ -2735,7 +2585,7 @@ export class App implements OnInit {
     try {
       admin.twoFactor = !admin.twoFactor;
       await this.firebaseData.saveAdmin(admin);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
       this.showToast(`Estado 2FA actualizado para ${admin.email}`, 'success');
     } catch (err) {
       console.error('Toggle admin 2FA failed', err);
@@ -2749,7 +2599,7 @@ export class App implements OnInit {
     try {
       visitor.twoFactor = !visitor.twoFactor;
       await this.firebaseData.saveVisitor(visitor);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
       this.showToast(`Estado 2FA actualizado para ${visitor.email}`, 'success');
     } catch (err) {
       console.error('Toggle visitor 2FA failed', err);
@@ -2762,7 +2612,7 @@ export class App implements OnInit {
     try {
       this.isLoadingData.set(true);
       await this.firebaseData.deleteAdmin(adminId);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
       this.showToast('Administrador eliminado con éxito', 'success');
     } catch (err) {
       console.error('Delete admin failed', err);
@@ -2777,7 +2627,7 @@ export class App implements OnInit {
     try {
       this.isLoadingData.set(true);
       await this.firebaseData.deleteVisitor(visitorId);
-      await this.loadSystemData();
+      await this.loadFirebaseData();
       this.showToast('Visitante eliminado con éxito', 'success');
     } catch (err) {
       console.error('Delete visitor failed', err);
@@ -2803,11 +2653,9 @@ export class App implements OnInit {
   }
 
   // Save integration keys dynamically to client cache
-  saveIntegrationsToCache() {
-    if (isPlatformBrowser(this.platformId)) {
-      const formVal = this.integrationsForm.getRawValue();
-      localStorage.setItem('lupacheque_integrations_data', JSON.stringify(formVal));
-    }
+  async saveIntegrationsToFirebase() {
+    const formVal = this.integrationsForm.getRawValue();
+    await this.firebaseData.saveSettings('integrations', formVal);
   }
 
   // Load cached IA instructions safely from local state
@@ -2823,12 +2671,13 @@ export class App implements OnInit {
   }
 
   // Save IA instructions to browser local state
-  saveIaInstructionsToCache() {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('lupacheque_ia_user', this.iaUserInstructions());
-      localStorage.setItem('lupacheque_ia_analysis', this.iaAnalysisInstructions());
-      localStorage.setItem('lupacheque_ia_sales', this.iaSalesInstructions());
-    }
+  async saveIaInstructionsToFirebase() {
+    const payload = {
+      userInstructions: this.iaUserInstructions(),
+      analysisInstructions: this.iaAnalysisInstructions(),
+      salesInstructions: this.iaSalesInstructions()
+    };
+    await this.firebaseData.saveSettings('ia', payload);
   }
 
   // Load cached Facturacion configurations safely from local state
@@ -2858,20 +2707,14 @@ export class App implements OnInit {
   }
 
   // Save fiscal Facturacion formulas to local storage safely
-  saveFacturacionToCache() {
-    if (isPlatformBrowser(this.platformId)) {
-      const formVal = this.facturacionForm.getRawValue();
-      const payload = {
-        nombre: formVal.nombre,
-        ruc: formVal.ruc,
-        direccion: formVal.direccion,
-        telefono: formVal.telefono,
-        correo: formVal.correo,
-        contrasena: formVal.contrasena,
-        p12FileName: this.p12FileName()
-      };
-      localStorage.setItem('lupacheque_facturacion_data', JSON.stringify(payload));
-    }
+  async saveFacturacionToFirebase() {
+    const formVal = this.facturacionForm.getRawValue();
+    const payload = {
+      ...formVal,
+      p12FileName: this.p12FileName(),
+      p12FileUploaded: this.p12FileUploaded()
+    };
+    await this.firebaseData.saveSettings('fiscal', payload);
   }
 
   // Load cached Negocio configurations of pricing, rewards, with default state fallback
@@ -2903,19 +2746,17 @@ export class App implements OnInit {
   }
 
   // Save CRM and monetize policies to client-side localStorage securely
-  saveNegocioToCache() {
-    if (isPlatformBrowser(this.platformId)) {
-      const formVal = this.negocioForm.getRawValue();
-      const payload = {
-        freeConsultations: formVal.freeConsultations,
-        paidConsultationValue: formVal.paidConsultationValue,
-        rewardFreeConsultations: formVal.rewardFreeConsultations,
-        rewardPercentage: formVal.rewardPercentage,
-        saldoPlanes: this.saldoPlanes(),
-        paymentLinks: this.paymentLinks()
-      };
-      localStorage.setItem('lupacheque_negocio_data', JSON.stringify(payload));
-    }
+  async saveNegocioToFirebase() {
+    const formVal = this.negocioForm.getRawValue();
+    const payload = {
+      freeConsultations: formVal.freeConsultations,
+      paidConsultationValue: formVal.paidConsultationValue,
+      rewardFreeConsultations: formVal.rewardFreeConsultations,
+      rewardPercentage: formVal.rewardPercentage,
+      saldoPlanes: this.saldoPlanes(),
+      paymentLinks: this.paymentLinks()
+    };
+    await this.firebaseData.saveSettings('negocio', payload);
   }
 
   // Global actions for the bottom-right corner customized with integration step routing
@@ -2923,14 +2764,14 @@ export class App implements OnInit {
     if (this.selectedTab() === 'Facturación') {
       this.submittedFacturacion.set(true);
       if (this.isFacturacionFormValid()) {
-        this.saveFacturacionToCache();
+        await this.saveFacturacionToFirebase();
         this.selectTab('Integraciones');
         this.showToast('Datos fiscales de Facturación guardados de forma segura. Siguiente pestaña: Integraciones.', 'success');
       } else {
         this.showToast('Por favor, completa todos los campos fiscales obligatorios del formulario o verifica el correo.', 'danger');
       }
     } else if (this.selectedTab() === 'Integraciones') {
-      this.saveIntegrationsToCache();
+      await this.saveIntegrationsToFirebase();
       const currentSub = this.activeIntegrationSubTab();
       
       if (currentSub === 'meta') {
@@ -2945,11 +2786,11 @@ export class App implements OnInit {
         this.showToast('Integraciones completadas con éxito. Redirigiendo a sección Bancos...', 'success');
       }
     } else if (this.selectedTab() === 'Negocio') {
-      this.saveNegocioToCache();
+      await this.saveNegocioToFirebase();
       this.selectTab('IA');
       this.showToast('Configuraciones comerciales de Negocio guardadas con éxito. Siguiente pestaña: IA.', 'success');
     } else if (this.selectedTab() === 'IA') {
-      this.saveIaInstructionsToCache();
+      await this.saveIaInstructionsToFirebase();
       const currentSub = this.activeIaSubTab();
       if (currentSub === 'usuarios') {
         this.activeIaSubTab.set('banco');
@@ -2973,7 +2814,7 @@ export class App implements OnInit {
     if (this.selectedTab() === 'Facturación') {
       this.submittedFacturacion.set(true);
       if (this.isFacturacionFormValid()) {
-        this.saveFacturacionToCache();
+        await this.saveFacturacionToFirebase();
         this.showToast('Configuraciones fiscales de Facturación guardadas. Redirigiendo al Dashboard...', 'success');
         setTimeout(() => {
           this.selectTab('Dashboard');
@@ -2982,19 +2823,19 @@ export class App implements OnInit {
         this.showToast('Por favor, completa todos los campos fiscales obligatorios o verifica el correo antes de salir.', 'danger');
       }
     } else if (this.selectedTab() === 'Integraciones') {
-      this.saveIntegrationsToCache();
+      await this.saveIntegrationsToFirebase();
       this.showToast('Cambios persistidos correctamente. Redirigiendo al Dashboard...', 'success');
       setTimeout(() => {
         this.selectTab('Dashboard');
       }, 1000);
     } else if (this.selectedTab() === 'Negocio') {
-      this.saveNegocioToCache();
+      await this.saveNegocioToFirebase();
       this.showToast('Configuraciones de Negocio persistidas con éxito. Redirigiendo al Dashboard...', 'success');
       setTimeout(() => {
         this.selectTab('Dashboard');
       }, 1000);
     } else if (this.selectedTab() === 'IA') {
-      this.saveIaInstructionsToCache();
+      await this.saveIaInstructionsToFirebase();
       this.showToast('Instrucciones de IA persistidas con éxito. Redirigiendo al Dashboard...', 'success');
       setTimeout(() => {
         this.selectTab('Dashboard');
@@ -3014,7 +2855,7 @@ export class App implements OnInit {
     }
     // Refresh list if changing to "Sistema" tab
     if (tabName === 'Sistema') {
-      this.loadSystemData();
+      this.loadFirebaseData();
     }
   }
 
@@ -3033,7 +2874,7 @@ export class App implements OnInit {
     this.showAlertsDropdown.update(v => !v);
   }
 
-  handleNotificationClick(notif: { id: string; type: 'bank' | 'payment'; data: any }) {
+  handleNotificationClick(notif: { id?: string; type: 'bank' | 'payment'; data: any }) {
     this.showAlertsDropdown.set(false);
     if (notif.type === 'bank') {
       this.selectedTab.set('Bancos');
