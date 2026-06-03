@@ -6,11 +6,61 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import {join} from 'node:path';
+import { GoogleGenAI } from '@google/genai';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
+app.use(express.json());
+
 const angularApp = new AngularNodeAppEngine();
+
+/**
+ * Handle server-side Gemini Chat Requests
+ */
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { apiKey, model, systemInstruction, contents } = req.body;
+    const finalApiKey = apiKey || process.env['GEMINI_API_KEY'];
+    if (!finalApiKey) {
+      return res.status(400).json({ error: 'Falta la API Key de Gemini. Favor configurarla en la sección de Integraciones.' });
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey: finalApiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build'
+        }
+      }
+    });
+
+    // Normalize model names to prevent 404s for old legacy parameters stored in DB
+    let modelName = model || 'gemini-2.5-flash';
+    const mStr = String(modelName).trim().toLowerCase();
+    if (mStr.includes('gemini-2.1-flash') || mStr.includes('gemini-3.5-flash') || mStr.includes('gemini-1.5-flash')) {
+      modelName = 'gemini-2.5-flash';
+    } else if (mStr.includes('gemini-2.1-pro') || mStr.includes('gemini-3.1-pro') || mStr.includes('gemini-3.5-pro') || mStr.includes('gemini-1.5-pro')) {
+      modelName = 'gemini-2.5-pro';
+    } else if (!mStr.startsWith('gemini-')) {
+      modelName = 'gemini-2.5-flash';
+    }
+
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: contents,
+      config: {
+        systemInstruction: systemInstruction || ''
+      }
+    });
+
+    return res.json({ text: response.text || '' });
+  } catch (err: unknown) {
+    console.error('Gemini endpoint error:', err);
+    const errMsg = err instanceof Error ? err.message : 'Error de procesamiento en la Inteligencia Artificial.';
+    return res.status(500).json({ error: errMsg });
+  }
+});
 
 /**
  * Example Express Rest API endpoints can be defined here.

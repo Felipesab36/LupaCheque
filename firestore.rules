@@ -81,6 +81,15 @@ service cloud.firestore {
              data.updatedAt is string;
     }
 
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['userPhone', 'sender', 'text', 'timestamp']) &&
+             data.keys().size() == 4 &&
+             data.userPhone is string &&
+             data.sender in ['user', 'bot'] &&
+             data.text is string &&
+             data.timestamp is string;
+    }
+
     // --- Collection Rules ---
 
     match /admins/{adminId} {
@@ -109,6 +118,10 @@ service cloud.firestore {
 
     match /settings/{settingId} {
       allow read, write: if isAdmin();
+    }
+
+    match /conversations/{messageId} {
+      allow read, write: if isAdmin() && isValidChatMessage(request.resource.data);
     }
   }
 }

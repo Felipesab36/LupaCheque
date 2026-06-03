@@ -84,6 +84,18 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["data", "updatedAt"]
+    },
+    "chatMessage": {
+      "title": "Chat Message",
+      "description": "Message in an AI chat conversation with a system user",
+      "type": "object",
+      "properties": {
+        "userPhone": { "type": "string" },
+        "sender": { "type": "string", "enum": ["user", "bot"] },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userPhone", "sender", "text", "timestamp"]
     }
   },
   "firestore": {
@@ -114,6 +126,10 @@
     "settings": {
       "schema": "settings",
       "description": "Configurations for IA, Integrations and Fiscal data"
+    },
+    "conversations": {
+      "schema": "chatMessage",
+      "description": "Historic chat log messages with users"
     }
   }
 }

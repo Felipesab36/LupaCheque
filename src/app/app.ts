@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { auth, googleProvider, signInWithPopup, signOut } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { FirebaseData, AdminUser, VisitorUser, BankQuery, BankAccount, BankAlert, SystemUser, UserPayment } from './firebase-data';
+import { FirebaseData, AdminUser, VisitorUser, BankAccount, BankAlert, SystemUser, UserPayment, ChatMessage } from './firebase-data';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +19,12 @@ export class App implements OnInit {
   selectedLanguage = signal<'es' | 'en'>('es');
   sidebarCollapsed = signal(false);
   
+  // Chat / Conversations State
+  conversationsList = signal<ChatMessage[]>([]);
+  selectedChatUser = signal<string>('+593999999999');
+  chatInputText = signal<string>('');
+  isChatLoading = signal<boolean>(false);
+  
   // Translation Dictionary
   private translations: Record<'es' | 'en', Record<string, string>> = {
     es: {
@@ -29,6 +35,7 @@ export class App implements OnInit {
       'Usuarios': 'Usuarios',
       'Negocio': 'Negocio',
       'IA': 'IA',
+      'Conversaciones': 'Conversaciones',
       'Sistema': 'Sistema',
       'welcome': 'Bienvenido al resumen ejecutivo de LupaCheque.',
       'banks': 'Bancos',
@@ -287,6 +294,7 @@ export class App implements OnInit {
       'Usuarios': 'Users',
       'Negocio': 'Business',
       'IA': 'AI',
+      'Conversaciones': 'Conversations',
       'Sistema': 'System',
       'welcome': 'Welcome to the LupaCheque executive summary.',
       'banks': 'Banks',
@@ -670,7 +678,7 @@ export class App implements OnInit {
     // Gemini API Connection parameters analyzed
     geminiToken: new FormControl(''),
     geminiApiKey: new FormControl('', [Validators.required]),
-    geminiModel: new FormControl('gemini-2.1-flash', [Validators.required]), // Prepopulated with standard recommended model
+    geminiModel: new FormControl('gemini-2.5-flash', [Validators.required]), // Prepopulated with standard recommended model
 
     // SRI (Electronic Invoicing - disabled/locked by default for currently inactive environment)
     sriTestingMode: new FormControl({ value: false, disabled: true }),
@@ -1690,7 +1698,7 @@ export class App implements OnInit {
     this.closePaymentAuditModal();
   }
 
-  async rejectPayment(paymentId?: string, reason: string = '') {
+  async rejectPayment(paymentId?: string, reason = '') {
     if (!paymentId) return;
     const list = this.userPaymentsList();
     const targetPayment = list.find(p => p.id === paymentId);
@@ -2383,6 +2391,7 @@ export class App implements OnInit {
     { name: 'Usuarios', icon: 'people' },
     { name: 'Negocio', icon: 'business' },
     { name: 'IA', icon: 'psychology' },
+    { name: 'Conversaciones', icon: 'chat' },
     { name: 'Sistema', icon: 'settings' }
   ];
 
@@ -2448,25 +2457,49 @@ export class App implements OnInit {
       if (users.length > 0) this.usersList.set(users);
       else await this.initializeUsersData();
 
+      // Ensure that +593999999999 is pre-created in users list for seamless testing
+      if (!this.usersList().some(u => u.phone === '+593999999999')) {
+        const newUser: SystemUser = {
+          phone: '+593999999999',
+          activeSince: new Date().toISOString(),
+          status: 'Gratis'
+        };
+        await this.firebaseData.saveUser(newUser);
+        const reloadedUsers = await this.firebaseData.getUsers();
+        this.usersList.set(reloadedUsers);
+      }
+
+      // Load Conversations
+      const conversations = await this.firebaseData.getConversations();
+      this.conversationsList.set(conversations);
+
       const payments = await this.firebaseData.getPayments();
       if (payments.length > 0) this.userPaymentsList.set(payments);
       else await this.initializePaymentsData();
 
-      const iaConfig = await this.firebaseData.getSettings('ia') as any;
+      const iaConfig = await this.firebaseData.getSettings('ia') as Record<string, string> | null;
       if (iaConfig) {
-        this.iaUserInstructions.set(iaConfig.userInstructions || this.iaUserInstructions());
-        this.iaAnalysisInstructions.set(iaConfig.analysisInstructions || this.iaAnalysisInstructions());
-        this.iaSalesInstructions.set(iaConfig.salesInstructions || this.iaSalesInstructions());
+        this.iaUserInstructions.set(iaConfig['userInstructions'] || this.iaUserInstructions());
+        this.iaAnalysisInstructions.set(iaConfig['analysisInstructions'] || this.iaAnalysisInstructions());
+        this.iaSalesInstructions.set(iaConfig['salesInstructions'] || this.iaSalesInstructions());
       }
 
-      const integrations = await this.firebaseData.getSettings('integrations') as any;
-      if (integrations) this.integrationsForm.patchValue(integrations);
+      const integrations = await this.firebaseData.getSettings('integrations') as Record<string, unknown> | null;
+      if (integrations) {
+        if (integrations['geminiModel'] === 'gemini-2.1-flash' || integrations['geminiModel'] === 'gemini-3.5-flash' || integrations['geminiModel'] === 'gemini-1.5-flash') {
+          integrations['geminiModel'] = 'gemini-2.5-flash';
+        } else if (integrations['geminiModel'] === 'gemini-2.1-pro' || integrations['geminiModel'] === 'gemini-3.1-pro-preview' || integrations['geminiModel'] === 'gemini-1.5-pro') {
+          integrations['geminiModel'] = 'gemini-2.5-pro';
+        }
+        this.integrationsForm.patchValue(integrations);
+      }
 
-      const fiscal = await this.firebaseData.getSettings('fiscal') as any;
+      const fiscal = await this.firebaseData.getSettings('fiscal') as Record<string, unknown> | null;
       if (fiscal) {
         this.facturacionForm.patchValue(fiscal);
-        if (fiscal.p12FileName) {
-          this.p12FileName.set(fiscal.p12FileName);
+        const p12Val = fiscal['p12FileName'];
+        if (typeof p12Val === 'string') {
+          this.p12FileName.set(p12Val);
           this.p12FileUploaded.set(true);
         }
       }
@@ -2474,6 +2507,117 @@ export class App implements OnInit {
       console.error('Error loading firebase data:', error);
     } finally {
       this.isLoadingData.set(false);
+    }
+  }
+
+  // --- Conversations Operations ---
+  selectChatUser(phone: string) {
+    this.selectedChatUser.set(phone);
+  }
+
+  async sendChatMessage() {
+    const text = this.chatInputText().trim();
+    if (!text) return;
+
+    this.isChatLoading.set(true);
+    try {
+      // 1. Save and local-render user message
+      const userMsg: ChatMessage = {
+        userPhone: this.selectedChatUser(),
+        sender: 'user',
+        text: text,
+        timestamp: new Date().toISOString()
+      };
+      
+      await this.firebaseData.saveChatMessage(userMsg);
+      this.chatInputText.set('');
+      
+      // Reload current conversations before calling AI
+      let chats = await this.firebaseData.getConversations();
+      this.conversationsList.set(chats);
+
+      // 2. Format history contents for the Gemini POST body
+      const userChats = chats.filter(m => m.userPhone === this.selectedChatUser());
+      const contents = userChats.map(c => ({
+        role: c.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: c.text }]
+      }));
+
+      // 3. Assemble complete system instruction matching custom prompt + rules
+      const combinedInstructions = `
+# INSTRUCCIONES DE COMPORTAMIENTO GENERAL SOBRE CÓMO COMPORTARSE:
+${this.iaUserInstructions()}
+
+# INSTRUCCIONES DE ANÁLISIS DE CONSULTAS O DATOS:
+${this.iaAnalysisInstructions()}
+
+# INSTRUCCIONES DE MONETIZACIÓN Y VENTAS (CÓMO INTENTAR MONETIZAR):
+${this.iaSalesInstructions()}
+      `;
+
+      // 4. Retrieve credentials securely from form state
+      const apiKey = this.integrationsForm.get('geminiApiKey')?.value;
+      const model = this.integrationsForm.get('geminiModel')?.value || 'gemini-2.5-flash';
+
+      // 5. POST to server-side Gemini API Proxy
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          apiKey,
+          model,
+          systemInstruction: combinedInstructions,
+          contents
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Error en la respuesta del servidor de IA');
+      }
+
+      // 6. Save bot's reply
+      if (data.text) {
+        const botMsg: ChatMessage = {
+          userPhone: this.selectedChatUser(),
+          sender: 'bot',
+          text: data.text,
+          timestamp: new Date().toISOString()
+        };
+        await this.firebaseData.saveChatMessage(botMsg);
+        
+        // Final histories reload
+        chats = await this.firebaseData.getConversations();
+        this.conversationsList.set(chats);
+      }
+    } catch (err: unknown) {
+      console.error('Chat error:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      this.showToast(`Error de IA: ${errMsg}`, 'danger');
+    } finally {
+      this.isChatLoading.set(false);
+    }
+  }
+
+  async clearChatHistory() {
+    const phone = this.selectedChatUser();
+    if (!phone) return;
+    
+    if (confirm(`¿Está seguro de que desea reiniciar la conversación para ${phone}? Se borrarán todos los mensajes.`)) {
+      this.isChatLoading.set(true);
+      try {
+        await this.firebaseData.deleteConversations(phone);
+        const conversations = await this.firebaseData.getConversations();
+        this.conversationsList.set(conversations);
+        this.showToast(`Historial reiniciado para ${phone}.`, 'success');
+      } catch (err: unknown) {
+        console.error('Failed to clear chats:', err);
+        this.showToast('No se pudo borrar el historial.', 'danger');
+      } finally {
+        this.isChatLoading.set(false);
+      }
     }
   }
 
@@ -2644,6 +2788,13 @@ export class App implements OnInit {
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed === 'object') {
+            if (parsed.geminiModel === 'gemini-2.1-flash' || parsed.geminiModel === 'gemini-3.5-flash' || parsed.geminiModel === 'gemini-1.5-flash') {
+              parsed.geminiModel = 'gemini-2.5-flash';
+            } else if (parsed.geminiModel === 'gemini-2.1-pro' || parsed.geminiModel === 'gemini-3.1-pro-preview' || parsed.geminiModel === 'gemini-1.5-pro') {
+              parsed.geminiModel = 'gemini-2.5-pro';
+            }
+          }
           this.integrationsForm.patchValue(parsed);
         } catch (err) {
           console.error('Failed to parse integrations cache data', err);
@@ -2874,7 +3025,7 @@ export class App implements OnInit {
     this.showAlertsDropdown.update(v => !v);
   }
 
-  handleNotificationClick(notif: { id?: string; type: 'bank' | 'payment'; data: any }) {
+  handleNotificationClick(notif: { id?: string; type: 'bank' | 'payment'; data: BankAlert | UserPayment }) {
     this.showAlertsDropdown.set(false);
     if (notif.type === 'bank') {
       this.selectedTab.set('Bancos');
@@ -2887,7 +3038,7 @@ export class App implements OnInit {
     } else if (notif.type === 'payment') {
       this.selectedTab.set('Usuarios');
       // For payments, we need to show the audit modal
-      this.openPaymentAuditModal(notif.data);
+      this.openPaymentAuditModal(notif.data as UserPayment);
     }
   }
 

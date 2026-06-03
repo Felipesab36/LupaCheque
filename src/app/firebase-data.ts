@@ -99,6 +99,14 @@ export interface UserPayment {
   paymentDateRaw?: number;
 }
 
+export interface ChatMessage {
+  id?: string;
+  userPhone: string;
+  sender: 'user' | 'bot';
+  text: string;
+  timestamp: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -401,6 +409,55 @@ export class FirebaseData {
       });
     } catch (error) {
       this.handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  }
+
+  // --- Conversations (Chat Logs) ---
+  async getConversations(): Promise<ChatMessage[]> {
+    if (!isPlatformBrowser(this.platformId)) return [];
+    try {
+      const q = collection(db, 'conversations');
+      const snapshot = await getDocs(q);
+      const list: ChatMessage[] = [];
+      snapshot.forEach(docSnap => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as ChatMessage);
+      });
+      list.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      return list;
+    } catch {
+      return [];
+    }
+  }
+
+  async saveChatMessage(msg: ChatMessage): Promise<void> {
+    const path = 'conversations';
+    try {
+      await addDoc(collection(db, path), {
+        userPhone: msg.userPhone,
+        sender: msg.sender,
+        text: msg.text,
+        timestamp: msg.timestamp || new Date().toISOString()
+      });
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  }
+
+  async deleteConversations(phone: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    try {
+      const q = collection(db, 'conversations');
+      const snapshot = await getDocs(q);
+      const batchPromises: Promise<void>[] = [];
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data['userPhone'] === phone) {
+          batchPromises.push(deleteDoc(doc(db, 'conversations', docSnap.id)));
+        }
+      });
+      await Promise.all(batchPromises);
+    } catch (error) {
+      this.handleFirestoreError(error, OperationType.DELETE, `conversations/query_for_${phone}`);
     }
   }
 }
