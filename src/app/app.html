@@ -2096,6 +2096,18 @@
                           </mat-icon>
                         </div>
                       </th>
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">
+                        {{ t('cheque_consecutivo') }}
+                      </th>
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">
+                        {{ t('cheque_monto') }}
+                      </th>
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">
+                        {{ t('cheque_fecha_cobro') }}
+                      </th>
+                      <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">
+                        {{ t('cheque_intentos') }}
+                      </th>
                       <th 
                         (click)="toggleBancosQuerySort('status')"
                         class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
@@ -2132,6 +2144,18 @@
                         <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500 font-mono">
                           {{ q.fechaCobroFormatted }}
                         </td>
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-mono">
+                          {{ q.chequeConsecutivo || '-' }}
+                        </td>
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-mono font-bold">
+                          {{ q.chequeMonto > 0 ? (q.chequeMonto | currency) : '-' }}
+                        </td>
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
+                          {{ q.chequeFechaCobroFormatted }}
+                        </td>
+                        <td class="px-4 py-1.5 whitespace-nowrap text-xs text-center text-zinc-600">
+                          {{ q.chequeIntentos || 0 }}
+                        </td>
                         <td class="px-4 py-1.5 whitespace-nowrap">
                           @if (q.status === 'Cobrado') {
                             <span class="inline-flex text-[9px] font-bold text-emerald-800 bg-emerald-50 rounded px-1.5 py-0.5 border border-emerald-100">
@@ -2162,7 +2186,15 @@
                         <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-700 font-mono select-all">
                           {{ q.userPhone }}
                         </td>
-                        <td class="px-4 py-1.5 whitespace-nowrap">
+                         <td class="px-4 py-1.5 whitespace-nowrap flex items-center gap-2">
+                          <button 
+                            type="button"
+                            (click)="openEditQueryModal(q.id)"
+                            class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-amber-50 border border-zinc-200 hover:border-amber-200 text-zinc-400 hover:text-amber-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                            title="Editar detalles de esta consulta"
+                          >
+                            <mat-icon class="text-[14px] shrink-0 leading-none">edit</mat-icon>
+                          </button>
                           <button 
                             type="button"
                             (click)="selectTab('Usuarios'); viewUserDetail(q.userPhone)"
@@ -2175,7 +2207,7 @@
                       </tr>
                     } @empty {
                       <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="9" class="px-6 py-12 text-center">
                           <div class="flex flex-col items-center justify-center space-y-2">
                             <mat-icon class="text-zinc-300 text-3xl">history</mat-icon>
                             <span class="text-xs text-zinc-400">No hay historial de consultas para este número de cuenta bajo los criterios seleccionados.</span>
@@ -4027,6 +4059,130 @@
               </button>
             }
           </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal para Editar Consulta Bancaria -->
+  @if (isBankQueryModalOpen()) {
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[60] animate-fade-in p-4">
+      <div class="bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden max-w-lg w-full flex flex-col animate-scale-in">
+        <!-- Header -->
+        <div class="p-6 border-b border-zinc-100 flex items-center justify-between">
+          <div class="flex flex-col">
+            <h4 class="text-base font-bold text-zinc-900 leading-tight">{{ t('edit_query_title') }}</h4>
+            <p class="text-[10px] text-zinc-400 font-normal mt-0.5">{{ t('edit_query_desc') }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="isBankQueryModalOpen.set(false)"
+            class="p-1.5 rounded-lg bg-zinc-50 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 border border-zinc-200 hover:border-rose-100 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center shrink-0 shadow-xs"
+          >
+            <mat-icon class="text-sm shrink-0 leading-none">close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Form -->
+        <div class="p-6 space-y-4 overflow-y-auto max-h-[60vh]" [formGroup]="bankQueryEditForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Estado -->
+            <div class="flex flex-col gap-1.5 md:col-span-2">
+              <label for="edit-query-status" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('collection_status') }}</label>
+              <select
+                id="edit-query-status"
+                formControlName="status"
+                class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-emerald-500 hover:border-zinc-300 transition-all font-semibold text-zinc-700 cursor-pointer appearance-none"
+              >
+                <option value="Cobrado">{{ t('status_cashed') }}</option>
+                <option value="Rechazado">{{ t('status_rejected') }}</option>
+                <option value="En espera">{{ t('status_on_hold') }}</option>
+                <option value="No reportado">{{ t('status_not_reported') }}</option>
+                <option value="Cuenta cerrada">{{ t('status_closed_account') }}</option>
+                <option value="Pendiente de confirmación">{{ t('status_pending') }}</option>
+              </select>
+            </div>
+
+            <!-- Fecha Cobro -->
+            <div class="flex flex-col gap-1.5">
+              <label for="edit-query-fecha-cobro" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('collection_date') }}</label>
+              <input 
+                id="edit-query-fecha-cobro"
+                type="date"
+                formControlName="fechaCobro"
+                class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-medium text-zinc-700"
+              />
+            </div>
+
+            <!-- N° Consecutivo Cheque -->
+            <div class="flex flex-col gap-1.5">
+              <label for="edit-query-cheque-consecutivo" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('cheque_consecutivo') }}</label>
+              <input 
+                id="edit-query-cheque-consecutivo"
+                type="text"
+                formControlName="chequeConsecutivo"
+                placeholder="Ej: 12345"
+                class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-medium text-zinc-700"
+              />
+            </div>
+
+            <!-- Monto Cheque -->
+            <div class="flex flex-col gap-1.5">
+              <label for="edit-query-cheque-monto" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('cheque_monto') }}</label>
+              <div class="relative">
+                <span class="absolute left-3 inset-y-0 flex items-center text-zinc-400 text-xs">$</span>
+                <input 
+                  id="edit-query-cheque-monto"
+                  type="number"
+                  formControlName="chequeMonto"
+                  step="0.01"
+                  class="w-full text-xs pl-7 pr-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-medium text-zinc-700"
+                />
+              </div>
+            </div>
+
+            <!-- Fecha Cobro Cheque -->
+            <div class="flex flex-col gap-1.5">
+              <label for="edit-query-cheque-fecha-cobro" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('cheque_fecha_cobro') }}</label>
+              <input 
+                id="edit-query-cheque-fecha-cobro"
+                type="date"
+                formControlName="chequeFechaCobro"
+                class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-medium text-zinc-700"
+              />
+            </div>
+
+            <!-- Intentos Cobro -->
+            <div class="flex flex-col gap-1.5 md:col-span-2">
+              <label for="edit-query-cheque-intentos" class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('cheque_intentos') }}</label>
+              <input 
+                id="edit-query-cheque-intentos"
+                type="number"
+                formControlName="chequeIntentos"
+                min="0"
+                class="w-full text-xs px-3 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all font-medium text-zinc-700"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-zinc-150 bg-zinc-50/50 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="isBankQueryModalOpen.set(false)"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-200 transition-all outline-none"
+          >
+            {{ t('cancel') }}
+          </button>
+          <button
+            type="button"
+            (click)="saveEditedQuery()"
+            [disabled]="bankQueryEditForm.invalid"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm border-b-2 border-emerald-800 active:border-b-0 active:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ t('save') }}
+          </button>
         </div>
       </div>
     </div>

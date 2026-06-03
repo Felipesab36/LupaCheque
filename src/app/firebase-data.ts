@@ -59,6 +59,10 @@ export interface BankQuery {
   status: 'Cobrado' | 'Rechazado' | 'En espera' | 'No reportado' | 'Cuenta cerrada' | 'Pendiente de confirmación';
   fechaCobro?: string;
   facturaUrl?: string;
+  chequeConsecutivo?: string;
+  chequeMonto?: number;
+  chequeFechaCobro?: string;
+  chequeIntentos?: number;
 }
 
 export interface BankAccount {

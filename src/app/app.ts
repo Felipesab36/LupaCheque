@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { auth, googleProvider, signInWithPopup, signOut } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { FirebaseData, AdminUser, VisitorUser, BankAccount, BankAlert, SystemUser, UserPayment, ChatMessage } from './firebase-data';
+import { FirebaseData, AdminUser, VisitorUser, BankAccount, BankAlert, BankQuery, SystemUser, UserPayment, ChatMessage } from './firebase-data';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -284,7 +284,13 @@ export class App implements OnInit {
       'paid_queries': 'Consultas pagadas',
       'free_queries': 'Consultas gratis',
       'details': 'Detalles',
-      'bank_alerts': 'Alertas Bancarias'
+      'bank_alerts': 'Alertas Bancarias',
+      'cheque_consecutivo': 'N° Consecutivo Cheque',
+      'cheque_monto': 'Monto del Cheque',
+      'cheque_fecha_cobro': 'Fecha Cobro Cheque',
+      'cheque_intentos': 'Cant. Intentos Cobro',
+      'edit_query_title': 'Editar Información de Consulta',
+      'edit_query_desc': 'Actualice los detalles del cheque y el estado de la transacción para esta consulta específica.'
     },
     en: {
       'Dashboard': 'Dashboard',
@@ -543,7 +549,13 @@ export class App implements OnInit {
       'paid_queries': 'Paid queries',
       'free_queries': 'Free queries',
       'details': 'Details',
-      'bank_alerts': 'Bank Alerts'
+      'bank_alerts': 'Bank Alerts',
+      'cheque_consecutivo': 'Check Number',
+      'cheque_monto': 'Check Amount',
+      'cheque_fecha_cobro': 'Check Cashing Date',
+      'cheque_intentos': 'Cashing Attempts',
+      'edit_query_title': 'Edit Inquiry Information',
+      'edit_query_desc': 'Update check details and transaction status for this specific inquiry.'
     }
   };
 
@@ -1971,7 +1983,12 @@ export class App implements OnInit {
       fechaCobro: q.fechaCobro || 'N/A',
       fechaCobroFormatted: q.fechaCobro ? this.formatUtcDateTimeToLocal(q.fechaCobro) : 'N/A',
       status: q.status,
-      userPhone: q.userPhone
+      userPhone: q.userPhone,
+      chequeConsecutivo: q.chequeConsecutivo || '',
+      chequeMonto: q.chequeMonto || 0,
+      chequeFechaCobro: q.chequeFechaCobro || '',
+      chequeFechaCobroFormatted: q.chequeFechaCobro ? this.formatUtcDateToLocal(q.chequeFechaCobro) : 'N/A',
+      chequeIntentos: q.chequeIntentos || 0
     }));
   });
 
@@ -2376,6 +2393,79 @@ export class App implements OnInit {
     } else {
       this.showToast('Por favor, ingrese un monto válido para el plan', 'danger');
     }
+  }
+
+  // Bank Query Edit State
+  isBankQueryModalOpen = signal(false);
+  currentEditingQueryId = signal<string | null>(null);
+
+  bankQueryEditForm = new FormGroup({
+    status: new FormControl<BankQuery['status']>('Pendiente de confirmación', [Validators.required]),
+    fechaCobro: new FormControl(''),
+    chequeConsecutivo: new FormControl(''),
+    chequeMonto: new FormControl<number | null>(null),
+    chequeFechaCobro: new FormControl(''),
+    chequeIntentos: new FormControl<number | null>(0)
+  });
+
+  openEditQueryModal(queryId: string) {
+    const bankName = this.selectedBankForDetail();
+    const accNumber = this.selectedAccountForDetail();
+    if (!bankName || !accNumber) return;
+
+    const account = this.bancosAccounts().find(a => a.bankName === bankName && a.accountNumber === accNumber);
+    if (!account) return;
+
+    const query = account.queries.find(q => q.id === queryId);
+    if (!query) return;
+
+    this.currentEditingQueryId.set(queryId);
+    this.bankQueryEditForm.patchValue({
+      status: query.status,
+      fechaCobro: query.fechaCobro || '',
+      chequeConsecutivo: query.chequeConsecutivo || '',
+      chequeMonto: query.chequeMonto || null,
+      chequeFechaCobro: query.chequeFechaCobro || '',
+      chequeIntentos: query.chequeIntentos || 0
+    });
+    this.isBankQueryModalOpen.set(true);
+  }
+
+  async saveEditedQuery() {
+    const queryId = this.currentEditingQueryId();
+    const bankName = this.selectedBankForDetail();
+    const accNumber = this.selectedAccountForDetail();
+    
+    if (!queryId || !bankName || !accNumber) return;
+
+    const accounts = this.bancosAccounts();
+    const accIndex = accounts.findIndex(a => a.bankName === bankName && a.accountNumber === accNumber);
+    if (accIndex === -1) return;
+
+    const account = accounts[accIndex];
+    const qIndex = account.queries.findIndex(q => q.id === queryId);
+    if (qIndex === -1) return;
+
+    const formVal = this.bankQueryEditForm.value;
+    
+    account.queries[qIndex] = {
+      ...account.queries[qIndex],
+      status: formVal.status || account.queries[qIndex].status,
+      fechaCobro: formVal.fechaCobro || undefined,
+      chequeConsecutivo: formVal.chequeConsecutivo || undefined,
+      chequeMonto: formVal.chequeMonto === null ? undefined : formVal.chequeMonto,
+      chequeFechaCobro: formVal.chequeFechaCobro || undefined,
+      chequeIntentos: formVal.chequeIntentos === null ? undefined : formVal.chequeIntentos
+    };
+
+    // Update state
+    this.bancosAccounts.set([...accounts]);
+    
+    // Save to Firebase
+    await this.firebaseData.saveBank(account);
+
+    this.showToast('Consulta actualizada correctamente.', 'success');
+    this.isBankQueryModalOpen.set(false);
   }
 
   removeSaldoPlan(index: number) {
