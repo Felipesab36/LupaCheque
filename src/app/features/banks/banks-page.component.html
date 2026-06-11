@@ -1,0 +1,683 @@
+<main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto bg-zinc-50/[0.08]" id="container-central-content">
+  @if (selectedBankForDetail() === null) {
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200/50">
+      <div>
+        <h1 class="text-2xl font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+          <mat-icon class="text-emerald-600 shrink-0">account_balance</mat-icon>
+          <span>{{ t('banks_title') }}</span>
+        </h1>
+        <p class="text-xs text-zinc-400 mt-0.5 font-normal">{{ t('banks_desc') }}</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          (click)="openAlertModal()"
+          class="relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200 hover:border-rose-300 text-xs text-rose-700 bg-rose-50 hover:bg-rose-100/80 transition-all font-bold outline-none shadow-sm cursor-pointer active:scale-95 border-b-2 active:border-b-0 border-rose-300"
+          title="Revisar alertas de nuevos bancos enviados por WhatsApp"
+        >
+          <mat-icon class="text-base shrink-0 leading-none">notifications_active</mat-icon>
+          <span>Alertas Nuevos Bancos</span>
+          @if (bancosAlertsCount > 0) {
+            <span class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-[10px] font-bold text-white shadow-md animate-pulse">
+              {{ bancosAlertsCount }}
+            </span>
+          }
+        </button>
+
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <mat-icon class="text-xs text-zinc-400">search</mat-icon>
+          </div>
+          <input
+            type="text"
+            [value]="bancosSearchQuery()"
+            (input)="bancosSearchQuery.set($any($event.target).value); bancosPage.set(1)"
+            placeholder="Buscar por nombre de banco..."
+            class="w-full text-xs pl-9 pr-4 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-zinc-700"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto min-w-[800px]">
+          <thead class="bg-zinc-50 border-b border-zinc-300">
+            <tr class="divide-x divide-zinc-200">
+              <th
+                (click)="toggleBancosSort('name')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('institution') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'name'" [class.text-zinc-300]="bancosSortField() !== 'name'">
+                    {{ bancosSortField() === 'name' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosSort('activeSince')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('active_since') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'activeSince'" [class.text-zinc-300]="bancosSortField() !== 'activeSince'">
+                    {{ bancosSortField() === 'activeSince' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosSort('accountsCount')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('acc_number') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'accountsCount'" [class.text-zinc-300]="bancosSortField() !== 'accountsCount'">
+                    {{ bancosSortField() === 'accountsCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosSort('queriesCount')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('chart_queries') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'queriesCount'" [class.text-zinc-300]="bancosSortField() !== 'queriesCount'">
+                    {{ bancosSortField() === 'queriesCount' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosSort('lastQuery')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('last_query') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'lastQuery'" [class.text-zinc-300]="bancosSortField() !== 'lastQuery'">
+                    {{ bancosSortField() === 'lastQuery' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosSort('acceptanceRate')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('confirmations_pct') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosSortField() !== 'acceptanceRate'">
+                    {{ bancosSortField() === 'acceptanceRate' ? (bancosSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">
+                {{ t('actions') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-300">
+            @for (b of paginatedBanks(); track b.name) {
+              <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  <span class="text-xs font-semibold text-zinc-800">{{ b.name }}</span>
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
+                  {{ b.activeSince }}
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  @if (b.accountsCount > 0) {
+                    <span class="inline-flex items-center gap-1 font-semibold text-[10px] text-emerald-700 bg-emerald-50 rounded px-1.5 py-0.5 border border-emerald-100">
+                      <mat-icon class="text-[10px] shrink-0">tag</mat-icon>
+                      <span>{{ b.accountsCount }}</span>
+                    </span>
+                  } @else {
+                    <span class="text-zinc-400 text-[10px]">-</span>
+                  }
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs font-mono text-zinc-600">
+                  {{ b.queriesCount > 0 ? b.queriesCount : 0 }}
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">
+                  {{ b.lastQuery }}
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  @if (b.acceptanceRate === 'N/A') {
+                    <span class="inline-flex text-[9px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-1.5 py-0.5 rounded">N/A</span>
+                  } @else {
+                    <span class="inline-flex text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">{{ b.acceptanceRate }}</span>
+                  }
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  <button
+                    type="button"
+                    (click)="viewBankDetail(b.name)"
+                    class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-500 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                    title="Ver cuentas registradas de {{ b.name }}"
+                  >
+                    <mat-icon class="text-[14px] leading-none">visibility</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <mat-icon class="text-zinc-300 text-3xl">account_balance</mat-icon>
+                    <span class="text-xs text-zinc-400">No se encontraron instituciones autorizadas con este criterio.</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-6 border-t border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <span class="text-xs text-zinc-500">
+          Mostrando bancos <strong>{{ bancosRangeStart() }}</strong> al <strong>{{ bancosRangeEnd() }}</strong> de <strong>{{ filteredBanks().length }}</strong> disponibles
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            [disabled]="bancosPage() === 1"
+            (click)="bancosPage.set(bancosPage() - 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Anterior"
+          >
+            <mat-icon class="text-base block leading-none">chevron_left</mat-icon>
+          </button>
+
+          @for (p of getBancosPageNumbers(); track p) {
+            @if (p === 1 || p === bancosTotalPages() || (p >= bancosPage() - 1 && p <= bancosPage() + 1)) {
+              <button
+                type="button"
+                (click)="bancosPage.set(p)"
+                class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer outline-none"
+                [class.bg-emerald-600]="bancosPage() === p"
+                [class.text-white]="bancosPage() === p"
+                [class.border-emerald-600]="bancosPage() === p"
+                [class.bg-white]="bancosPage() !== p"
+                [class.text-zinc-600]="bancosPage() !== p"
+                [class.border-zinc-200]="bancosPage() !== p"
+                [class.hover:bg-zinc-50]="bancosPage() !== p"
+              >
+                {{ p }}
+              </button>
+            } @else if (p === 2 || p === bancosTotalPages() - 1) {
+              <span class="px-1 text-zinc-400 text-xs select-none">...</span>
+            }
+          }
+
+          <button
+            type="button"
+            [disabled]="bancosPage() === bancosTotalPages()"
+            (click)="bancosPage.set(bancosPage() + 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Siguiente"
+          >
+            <mat-icon class="text-base block leading-none">chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else if (selectedAccountForDetail() === null) {
+    <div class="flex flex-col gap-2 animate-fade-in">
+      <button
+        type="button"
+        (click)="closeBankDetail()"
+        class="self-start inline-flex items-center gap-1.5 text-zinc-500 hover:text-emerald-600 text-xs font-semibold hover:bg-zinc-100 px-3 py-2 rounded-xl transition-all outline-none cursor-pointer border border-zinc-200 shadow-sm"
+        [attr.title]="t('back_catalog')"
+      >
+        <mat-icon class="text-base shrink-0 leading-none">arrow_back</mat-icon>
+        <span>{{ t('back_catalog') }}</span>
+      </button>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200/50 mt-2">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-sm">
+            <mat-icon class="text-xl shrink-0 leading-none">account_balance</mat-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-zinc-900 tracking-tight">{{ t('banks') }} {{ selectedBankForDetail() }}</h1>
+            <p class="text-xs text-zinc-400 mt-0.5 font-normal">{{ t('banks_detail_desc') }}</p>
+          </div>
+        </div>
+
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <mat-icon class="text-xs text-zinc-400">search</mat-icon>
+          </div>
+          <input
+            type="text"
+            [value]="bancosAccountSearchQuery()"
+            (input)="bancosAccountSearchQuery.set($any($event.target).value); bancosAccountPage.set(1)"
+            [placeholder]="t('search_account')"
+            class="w-full text-xs pl-9 pr-4 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-zinc-700"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto min-w-[700px]">
+          <thead class="bg-zinc-50 border-b border-zinc-300">
+            <tr class="divide-x divide-zinc-200">
+              <th
+                (click)="toggleBancosAccountSort('accountNumber')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('acc_number') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'accountNumber'" [class.text-zinc-300]="bancosAccountSortField() !== 'accountNumber'">
+                    {{ bancosAccountSortField() === 'accountNumber' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosAccountSort('activeSince')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('active_since') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'activeSince'" [class.text-zinc-300]="bancosAccountSortField() !== 'activeSince'">
+                    {{ bancosAccountSortField() === 'activeSince' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosAccountSort('queriesCount')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('chart_queries') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'queriesCount'" [class.text-zinc-300]="bancosAccountSortField() !== 'queriesCount'">
+                    {{ bancosAccountSortField() === 'queriesCount' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosAccountSort('lastQuery')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('last_query') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'lastQuery'" [class.text-zinc-300]="bancosAccountSortField() !== 'lastQuery'">
+                    {{ bancosAccountSortField() === 'lastQuery' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosAccountSort('acceptanceRate')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ t('confirmations_pct') }}</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosAccountSortField() === 'acceptanceRate'" [class.text-zinc-300]="bancosAccountSortField() !== 'acceptanceRate'">
+                    {{ bancosAccountSortField() === 'acceptanceRate' ? (bancosAccountSortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">{{ t('actions') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-300">
+            @for (acc of paginatedBankAccounts(); track acc.accountNumber) {
+              <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  <span class="text-[11px] font-mono font-semibold text-zinc-700 bg-zinc-50 hover:bg-zinc-100 transition-all px-2 py-0.5 rounded border border-zinc-200/50 select-all">{{ acc.accountNumber }}</span>
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">{{ acc.activeSince }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs font-mono text-zinc-600">{{ acc.queriesCount }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">{{ acc.lastQuery }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  @if (acc.acceptanceRate === 'N/A') {
+                    <span class="inline-flex text-[9px] font-bold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-1.5 py-0.5 rounded">N/A</span>
+                  } @else {
+                    <span class="inline-flex text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">{{ acc.acceptanceRate }}</span>
+                  }
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  <button
+                    type="button"
+                    (click)="viewAccountDetail(acc.accountNumber)"
+                    class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                    title="Ver detalles adicionales especificos de esta cuenta"
+                  >
+                    <mat-icon class="text-[14px] shrink-0 leading-none">visibility</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <mat-icon class="text-zinc-300 text-3xl">credit_card</mat-icon>
+                    <span class="text-xs text-zinc-400">No se encontraron cuentas o no hay operaciones registradas para este banco.</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-6 border-t border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <span class="text-xs text-zinc-500">
+          Mostrando cuentas <strong>{{ bancosAccountRangeStart() }}</strong> al <strong>{{ bancosAccountRangeEnd() }}</strong> de <strong>{{ filteredBankAccounts().length }}</strong> registradas
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            [disabled]="bancosAccountPage() === 1"
+            (click)="bancosAccountPage.set(bancosAccountPage() - 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Anterior"
+          >
+            <mat-icon class="text-base block leading-none">chevron_left</mat-icon>
+          </button>
+
+          @for (p of getBancosAccountPageNumbers(); track p) {
+            @if (p === 1 || p === bancosAccountTotalPages() || (p >= bancosAccountPage() - 1 && p <= bancosAccountPage() + 1)) {
+              <button
+                type="button"
+                (click)="bancosAccountPage.set(p)"
+                class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer outline-none"
+                [class.bg-emerald-600]="bancosAccountPage() === p"
+                [class.text-white]="bancosAccountPage() === p"
+                [class.border-emerald-600]="bancosAccountPage() === p"
+                [class.bg-white]="bancosAccountPage() !== p"
+                [class.text-zinc-600]="bancosAccountPage() !== p"
+                [class.border-zinc-200]="bancosAccountPage() !== p"
+                [class.hover:bg-zinc-50]="bancosAccountPage() !== p"
+              >
+                {{ p }}
+              </button>
+            } @else if (p === 2 || p === bancosAccountTotalPages() - 1) {
+              <span class="px-1 text-zinc-400 text-xs select-none">...</span>
+            }
+          }
+
+          <button
+            type="button"
+            [disabled]="bancosAccountPage() === bancosAccountTotalPages()"
+            (click)="bancosAccountPage.set(bancosAccountPage() + 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Siguiente"
+          >
+            <mat-icon class="text-base block leading-none">chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-2 animate-fade-in">
+      <button
+        type="button"
+        (click)="closeAccountDetail()"
+        class="self-start inline-flex items-center gap-1.5 text-zinc-500 hover:text-emerald-600 text-xs font-semibold hover:bg-zinc-100 px-3 py-2 rounded-xl transition-all outline-none cursor-pointer border border-zinc-200 shadow-sm"
+        title="Volver a las cuentas del banco {{ selectedBankForDetail() }}"
+      >
+        <mat-icon class="text-base shrink-0 leading-none">arrow_back</mat-icon>
+        <span>Volver a Cuentas</span>
+      </button>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200/50 mt-2">
+        <div class="flex items-center gap-3">
+          <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 shadow-sm">
+            <mat-icon class="text-xl shrink-0 leading-none">account_balance</mat-icon>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-zinc-900 tracking-tight leading-tight">Banco {{ selectedBankForDetail() }}</h1>
+            <h2 class="text-lg font-bold text-emerald-700 tracking-tight leading-tight">Cuenta {{ selectedAccountForDetail() }}</h2>
+          </div>
+        </div>
+
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <mat-icon class="text-xs text-zinc-400">search</mat-icon>
+          </div>
+          <input
+            type="text"
+            [value]="bancosQuerySearchQuery()"
+            (input)="bancosQuerySearchQuery.set($any($event.target).value); bancosQueryPage.set(1)"
+            placeholder="Buscar por telefono de usuario..."
+            class="w-full text-xs pl-9 pr-4 py-2.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-medium text-zinc-700"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-hidden flex flex-col">
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto min-w-[700px]">
+          <thead class="bg-zinc-50 border-b border-zinc-300">
+            <tr class="divide-x divide-zinc-200">
+              <th
+                (click)="toggleBancosQuerySort('queryDate')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Fecha de consulta</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'queryDate'" [class.text-zinc-300]="bancosQuerySortField() !== 'queryDate'">
+                    {{ bancosQuerySortField() === 'queryDate' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosQuerySort('fechaCobro')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Fecha de cobro</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'fechaCobro'" [class.text-zinc-300]="bancosQuerySortField() !== 'fechaCobro'">
+                    {{ bancosQuerySortField() === 'fechaCobro' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">{{ t('cheque_consecutivo') }}</th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">{{ t('cheque_monto') }}</th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">{{ t('cheque_fecha_cobro') }}</th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider select-none">{{ t('cheque_intentos') }}</th>
+              <th
+                (click)="toggleBancosQuerySort('status')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Estado de cobro</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'status'" [class.text-zinc-300]="bancosQuerySortField() !== 'status'">
+                    {{ bancosQuerySortField() === 'status' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th
+                (click)="toggleBancosQuerySort('userPhone')"
+                class="px-4 py-2 text-left text-[11px] font-bold text-zinc-600 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 select-none group transition-all"
+              >
+                <div class="flex items-center gap-1">
+                  <span>Usuario</span>
+                  <mat-icon class="text-[10px] transition-colors shrink-0" [class.text-emerald-600]="bancosQuerySortField() === 'userPhone'" [class.text-zinc-300]="bancosQuerySortField() !== 'userPhone'">
+                    {{ bancosQuerySortField() === 'userPhone' ? (bancosQuerySortAsc() ? 'arrow_upward' : 'arrow_downward') : 'import_export' }}
+                  </mat-icon>
+                </div>
+              </th>
+              <th class="px-4 py-2 text-left text-[11px] font-bold text-zinc-400 uppercase tracking-wider select-none">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-300">
+            @for (q of paginatedAccountQueries(); track q.id) {
+              <tr class="hover:bg-zinc-50/50 transition-colors divide-x divide-zinc-200">
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-medium">{{ q.queryDateFormatted }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500 font-mono">{{ q.fechaCobroFormatted }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-mono">{{ q.chequeConsecutivo || '-' }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-600 font-mono font-bold">{{ q.chequeMonto > 0 ? (q.chequeMonto | currency) : '-' }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-500">{{ q.chequeFechaCobroFormatted }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-center text-zinc-600">{{ q.chequeIntentos || 0 }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap">
+                  @if (q.status === 'Cobrado') {
+                    <span class="inline-flex text-[9px] font-bold text-emerald-800 bg-emerald-50 rounded px-1.5 py-0.5 border border-emerald-100">Cobrado</span>
+                  } @else if (q.status === 'Rechazado') {
+                    <span class="inline-flex text-[9px] font-bold text-rose-800 bg-rose-50 rounded px-1.5 py-0.5 border border-rose-100">Rechazado</span>
+                  } @else if (q.status === 'En espera') {
+                    <span class="inline-flex text-[9px] font-bold text-amber-800 bg-amber-50 rounded px-1.5 py-0.5 border border-amber-100">En espera</span>
+                  } @else if (q.status === 'No reportado' || q.status === 'Pendiente de confirmación') {
+                    <span class="inline-flex text-[9px] font-semibold text-zinc-600 bg-zinc-50 rounded px-1.5 py-0.5 border border-zinc-200">No reportado</span>
+                  } @else if (q.status === 'Cuenta cerrada') {
+                    <span class="inline-flex text-[9px] font-semibold text-zinc-800 bg-zinc-200/65 rounded px-1.5 py-0.5 border border-zinc-300">Cuenta cerrada</span>
+                  } @else {
+                    <span class="inline-flex text-[9px] font-semibold text-zinc-500 bg-zinc-50 rounded px-1.5 py-0.5 border border-zinc-200">{{ q.status }}</span>
+                  }
+                </td>
+                <td class="px-4 py-1.5 whitespace-nowrap text-xs text-zinc-700 font-mono select-all">{{ q.userPhone }}</td>
+                <td class="px-4 py-1.5 whitespace-nowrap flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="openEditQueryModal(q.id)"
+                    class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-amber-50 border border-zinc-200 hover:border-amber-200 text-zinc-400 hover:text-amber-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                    title="Editar detalles de esta consulta"
+                  >
+                    <mat-icon class="text-[14px] shrink-0 leading-none">edit</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="selectUser(q.userPhone)"
+                    class="inline-flex items-center justify-center p-1 rounded bg-zinc-50 hover:bg-emerald-50 border border-zinc-200 hover:border-emerald-200 text-zinc-400 hover:text-emerald-600 transition-all cursor-pointer outline-none shadow-sm active:scale-95"
+                    title="Ver historial de este usuario en la seccion de Usuarios"
+                  >
+                    <mat-icon class="text-[14px] shrink-0 leading-none">visibility</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center space-y-2">
+                    <mat-icon class="text-zinc-300 text-3xl">history</mat-icon>
+                    <span class="text-xs text-zinc-400">No hay historial de consultas para este numero de cuenta bajo los criterios seleccionados.</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-6 border-t border-zinc-100 bg-zinc-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <span class="text-xs text-zinc-500">
+          Mostrando consultas <strong>{{ bancosQueryRangeStart() }}</strong> al <strong>{{ bancosQueryRangeEnd() }}</strong> de <strong>{{ filteredAccountQueries().length }}</strong> disponibles
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            [disabled]="bancosQueryPage() === 1"
+            (click)="bancosQueryPage.set(bancosQueryPage() - 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Anterior"
+          >
+            <mat-icon class="text-base block leading-none">chevron_left</mat-icon>
+          </button>
+
+          @for (p of getBancosQueryPageNumbers(); track p) {
+            @if (p === 1 || p === bancosQueryTotalPages() || (p >= bancosQueryPage() - 1 && p <= bancosQueryPage() + 1)) {
+              <button
+                type="button"
+                (click)="bancosQueryPage.set(p)"
+                class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer outline-none"
+                [class.bg-emerald-600]="bancosQueryPage() === p"
+                [class.text-white]="bancosQueryPage() === p"
+                [class.border-emerald-600]="bancosQueryPage() === p"
+                [class.bg-white]="bancosQueryPage() !== p"
+                [class.text-zinc-600]="bancosQueryPage() !== p"
+                [class.border-zinc-200]="bancosQueryPage() !== p"
+                [class.hover:bg-zinc-50]="bancosQueryPage() !== p"
+              >
+                {{ p }}
+              </button>
+            } @else if (p === 2 || p === bancosQueryTotalPages() - 1) {
+              <span class="px-1 text-zinc-400 text-xs select-none">...</span>
+            }
+          }
+
+          <button
+            type="button"
+            [disabled]="bancosQueryPage() === bancosQueryTotalPages()"
+            (click)="bancosQueryPage.set(bancosQueryPage() + 1)"
+            class="p-2 border border-zinc-200 bg-white rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-zinc-700 transition-all outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Pagina Siguiente"
+          >
+            <mat-icon class="text-base block leading-none">chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isBankQueryModalOpen) {
+    <div class="fixed inset-0 z-[120] bg-zinc-950/55 backdrop-blur-xs flex items-center justify-center px-3 py-5">
+      <div class="bg-white w-full max-w-2xl rounded-2xl border border-zinc-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-zinc-900 tracking-tight">Editar Consulta Bancaria</h3>
+            <p class="text-[11px] text-zinc-500 mt-0.5">Actualiza estado, montos y metadatos asociados a la consulta.</p>
+          </div>
+          <button
+            type="button"
+            (click)="isBankQueryModalOpen = false"
+            class="p-2 rounded-xl border border-zinc-200 text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50 transition-all"
+            title="Cerrar"
+          >
+            <mat-icon class="text-base leading-none">close</mat-icon>
+          </button>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4" [formGroup]="bankQueryEditForm">
+          <div class="space-y-1.5 md:col-span-2">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Estado</label>
+            <select formControlName="status" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500">
+              <option value="Cobrado">Cobrado</option>
+              <option value="Rechazado">Rechazado</option>
+              <option value="En espera">En espera</option>
+              <option value="No reportado">No reportado</option>
+              <option value="Cuenta cerrada">Cuenta cerrada</option>
+              <option value="Pendiente de confirmación">Pendiente de confirmacion</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Fecha Cobro</label>
+            <input type="datetime-local" formControlName="fechaCobro" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Cheque Consecutivo</label>
+            <input type="text" formControlName="chequeConsecutivo" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Cheque Monto</label>
+            <input type="number" step="0.01" formControlName="chequeMonto" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Cheque Fecha Cobro</label>
+            <input type="date" formControlName="chequeFechaCobro" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Cheque Intentos</label>
+            <input type="number" formControlName="chequeIntentos" class="w-full text-sm py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-zinc-100 flex items-center justify-end gap-2.5">
+          <button type="button" (click)="isBankQueryModalOpen = false" class="px-4 py-2 text-xs font-semibold rounded-xl border border-zinc-200 text-zinc-600 hover:bg-zinc-50 transition-all">Cancelar</button>
+          <button type="button" (click)="saveEditedQuery()" class="px-4 py-2 text-xs font-semibold rounded-xl border border-emerald-700 bg-emerald-600 text-white hover:bg-emerald-700 transition-all">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  }
+</main>
