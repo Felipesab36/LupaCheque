@@ -61,7 +61,7 @@ jobs:
             exit 1
           fi
 
-          printf '%s\n' "$APP_ENV_FILE" | ssh -p ${SSH_PORT:-22} ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "umask 077; cat > '${{ secrets.TARGET_DIR }}/.env'"
+          printf '%s\n' "$APP_ENV_FILE" | ssh -p ${SSH_PORT:-22} ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "umask 077; cat > '${{ secrets.TARGET_DIR }}/server/.env'"
       
       - name: Reload nginx
         env:
