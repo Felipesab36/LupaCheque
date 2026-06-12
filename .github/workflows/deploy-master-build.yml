@@ -39,29 +39,10 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
-          set -euo pipefail
-
-          if [ -z "${SSH_PRIVATE_KEY:-}" ]; then
-            echo "Missing required secret: SSH_PRIVATE_KEY"
-            exit 1
-          fi
-
-          install -m 700 -d "$HOME/.ssh"
+          mkdir -p "$HOME/.ssh"
           printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$HOME/.ssh/id_rsa"
-          chmod 600 "$HOME/.ssh/id_rsa"
-
-          if [ ! -s "$HOME/.ssh/id_rsa" ]; then
-            echo "SSH private key file was not created or is empty"
-            exit 1
-          fi
-
-          if ! ssh-keygen -y -f "$HOME/.ssh/id_rsa" >/dev/null 2>&1; then
-            echo "SSH_PRIVATE_KEY is invalid or malformed"
-            exit 1
-          fi
-
-          touch "$HOME/.ssh/known_hosts"
-          ssh-keyscan -p "${SSH_PORT:-22}" -H "${{ secrets.DEPLOY_HOST }}" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+          ssh-keyscan -p "${SSH_PORT:-22}" -H "${{ secrets.DEPLOY_HOST }}" > "$HOME/.ssh/known_hosts" 2>/dev/null
+          chmod 600 "$HOME/.ssh/id_rsa" "$HOME/.ssh/known_hosts"
 
       - name: Rsync build to server
         env:
@@ -69,6 +50,18 @@ jobs:
         run: |
           # Ajusta ./dist al directorio de salida de tu build
           rsync -avz --delete -e "ssh -p ${SSH_PORT:-22}" ./dist/app/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.TARGET_DIR }}
+
+      - name: Upload runtime .env
+        env:
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          APP_ENV_FILE: ${{ secrets.APP_ENV_FILE }}
+        run: |
+          if [ -z "${APP_ENV_FILE:-}" ]; then
+            echo "Missing required secret: APP_ENV_FILE"
+            exit 1
+          fi
+
+          printf '%s\n' "$APP_ENV_FILE" | ssh -p ${SSH_PORT:-22} ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "umask 077; cat > '${{ secrets.TARGET_DIR }}/.env'"
       
       - name: Reload nginx
         env:

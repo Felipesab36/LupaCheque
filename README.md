@@ -25,6 +25,140 @@ View your app in AI Studio: https://ai.studio/apps/ce823d18-a96a-4b7d-b709-39394
 3. Run the app:
    `npm run dev`
 
+## Deployment (Produccion)
+
+Este proyecto se despliega con GitHub Actions a un servidor Linux por SSH, publicando build SSR de Angular (`browser` + `server`).
+
+### 1. Workflow automatico
+
+El pipeline vive en `.github/workflows/deploy-master-build.yml` y se ejecuta en cada push a `master`.
+
+Flujo:
+
+1. Instala dependencias y corre `npm run build`.
+2. Copia `./dist/app/` al servidor con `rsync`.
+3. Genera/actualiza archivo `.env` remoto desde un secret.
+4. Ejecuta comando remoto de recarga/reinicio (`RELOAD_CMD`).
+
+### 2. Secrets requeridos en GitHub
+
+Configura estos secrets en el repositorio:
+
+- `SSH_PRIVATE_KEY`: clave privada OpenSSH del usuario de despliegue.
+- `SSH_PORT`: puerto SSH del servidor (ejemplo: `1022`).
+- `DEPLOY_HOST`: host o IP del servidor.
+- `DEPLOY_USER`: usuario SSH para deploy.
+- `TARGET_DIR`: directorio remoto destino (ejemplo: `/var/www/lupacheque/current`).
+- `RELOAD_CMD`: comando remoto para reiniciar app/proxy.
+- `APP_ENV_FILE`: contenido completo del archivo `.env` de produccion.
+
+Ejemplo de `APP_ENV_FILE`:
+
+```env
+WHATSAPP_VERIFY_TOKEN=tu_verify_token
+WHATSAPP_ACCESS_TOKEN=tu_access_token
+WHATSAPP_PHONE_NUMBER_ID=tu_phone_number_id
+META_APP_SECRET=tu_meta_app_secret
+GRAPH_API_VERSION=v21.0
+GEMINI_API_KEY=tu_gemini_api_key
+```
+
+### 3. Servidor Linux (SSR)
+
+Instala Node.js 20+ en el servidor.
+
+Comandos de verificacion:
+
+```bash
+node -v
+npm -v
+which node
+```
+
+### 4. Servicio systemd
+
+Crear `/etc/systemd/system/lupacheque.service`:
+
+```ini
+[Unit]
+Description=LupaCheque Angular SSR
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/lupacheque/current
+Environment=NODE_ENV=production
+Environment=PORT=4000
+ExecStart=/usr/bin/node dist/app/server/server.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Activar:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable lupacheque
+sudo systemctl restart lupacheque
+sudo systemctl status lupacheque
+```
+
+Logs:
+
+```bash
+sudo journalctl -u lupacheque -f
+```
+
+### 5. Nginx como reverse proxy
+
+Config base (`/etc/nginx/sites-available/lupacheque.conf`):
+
+```nginx
+server {
+   listen 80;
+   server_name lupacheque.educadots.com;
+
+   location / {
+      proxy_pass http://127.0.0.1:4000;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+   }
+}
+```
+
+Activar y recargar:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/lupacheque.conf /etc/nginx/sites-enabled/lupacheque.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 6. WhatsApp webhook en produccion
+
+Webhook URL:
+
+`https://lupacheque.educadots.com/api/whatsapp/webhook`
+
+Prueba de verificacion:
+
+```bash
+curl "https://lupacheque.educadots.com/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=TU_TOKEN&hub.challenge=12345"
+```
+
+Debe responder:
+
+```text
+12345
+```
+
 ## Arquitectura y Tecnologias
 
 ### Frontend
