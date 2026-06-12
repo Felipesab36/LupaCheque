@@ -9,13 +9,8 @@ import {join} from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
-import {
-  applicationDefault,
-  cert,
-  getApps,
-  initializeApp as initializeAdminApp,
-} from 'firebase-admin/app';
-import { Firestore, getFirestore } from 'firebase-admin/firestore';
+
+type Firestore = import('firebase-admin/firestore').Firestore;
 
 type ChatContent = {
   role: 'user' | 'model';
@@ -82,6 +77,7 @@ const DEFAULT_GEMINI_MODEL = process.env['GEMINI_MODEL'] || 'gemini-2.5-flash';
 const DEFAULT_FIRESTORE_DATABASE_ID = 'ai-studio-ce823d18-a96a-4b7d-b709-393940c0500b';
 const whatsappConversations = new Map<string, ConversationEntry[]>();
 let firestoreDb: Firestore | null = null;
+let firestoreInitPromise: Promise<Firestore | null> | null = null;
 
 type RawBodyRequest = Request & { rawBody?: Buffer };
 
@@ -163,31 +159,44 @@ function parseServiceAccountFromEnv(): Record<string, unknown> | null {
   return null;
 }
 
-function initFirestoreAdmin(): Firestore | null {
+async function initFirestoreAdmin(): Promise<Firestore | null> {
   if (firestoreDb) {
     return firestoreDb;
   }
 
-  try {
-    if (getApps().length === 0) {
-      const serviceAccount = parseServiceAccountFromEnv();
-      if (serviceAccount) {
-        initializeAdminApp({
-          credential: cert(serviceAccount as Parameters<typeof cert>[0]),
-        });
-      } else {
-        initializeAdminApp({
-          credential: applicationDefault(),
-        });
-      }
-    }
+  if (!firestoreInitPromise) {
+    firestoreInitPromise = (async () => {
+      try {
+        const [{ applicationDefault, cert, getApps, initializeApp }, { getFirestore }] = await Promise.all([
+          import('firebase-admin/app'),
+          import('firebase-admin/firestore'),
+        ]);
 
-    firestoreDb = getFirestore(getApps()[0], getFirestoreDatabaseId());
-    return firestoreDb;
-  } catch (err) {
-    console.warn('Firestore admin no disponible en backend. Se usará fallback en memoria.', err);
-    return null;
+        if (getApps().length === 0) {
+          const serviceAccount = parseServiceAccountFromEnv();
+          if (serviceAccount) {
+            initializeApp({
+              credential: cert(serviceAccount as Parameters<typeof cert>[0]),
+            });
+          } else {
+            initializeApp({
+              credential: applicationDefault(),
+            });
+          }
+        }
+
+        firestoreDb = getFirestore(getApps()[0], getFirestoreDatabaseId());
+        return firestoreDb;
+      } catch (err) {
+        console.warn('Firestore admin no disponible en backend. Se usará fallback en memoria.', err);
+        return null;
+      } finally {
+        firestoreInitPromise = null;
+      }
+    })();
   }
+
+  return firestoreInitPromise;
 }
 
 async function getIaRuntimeSettings(): Promise<IaRuntimeSettings> {
@@ -199,7 +208,7 @@ async function getIaRuntimeSettings(): Promise<IaRuntimeSettings> {
     geminiModel: DEFAULT_GEMINI_MODEL,
   };
 
-  const db = initFirestoreAdmin();
+  const db = await initFirestoreAdmin();
   if (!db) {
     return fallback;
   }
@@ -317,7 +326,7 @@ async function persistConversationMessage(
 ): Promise<void> {
   appendConversationMessage(phone, sender, text);
 
-  const db = initFirestoreAdmin();
+  const db = await initFirestoreAdmin();
   if (!db) {
     return;
   }
@@ -335,7 +344,7 @@ async function persistConversationMessage(
 }
 
 async function getConversationContents(phone: string): Promise<ChatContent[]> {
-  const db = initFirestoreAdmin();
+  const db = await initFirestoreAdmin();
   if (!db) {
     return getInMemoryConversationContents(phone);
   }
