@@ -1,0 +1,213 @@
+<main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto bg-zinc-50/10" id="container-central-content-facturacion">
+  <form [formGroup]="facturacionForm" (ngSubmit)="$event.preventDefault()" class="flex-grow flex flex-col space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-facturacion">{{ t('fiscal_data') }}</h1>
+        <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('fiscal_desc') }}</p>
+      </div>
+      <div class="flex items-center gap-2 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100 shadow-xs shrink-0 select-none">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>{{ t('active_fiscal') }}</span>
+      </div>
+    </div>
+
+    <div class="bg-white border border-zinc-200/60 rounded-3xl p-6 md:p-8 shadow-xs w-full space-y-8">
+      <div class="flex items-center gap-2.5 pb-2 border-b border-zinc-100">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+          <mat-icon class="text-xl">receipt_long</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-zinc-800 tracking-tight uppercase">{{ t('fiscal_data') }}</h2>
+          <p class="text-[10px] text-zinc-400 font-normal">{{ t('fiscal_desc') }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="space-y-1.5 md:col-span-1 lg:col-span-2">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_name') }}</span>
+          <input
+            type="text"
+            formControlName="nombre"
+            [placeholder]="t('fiscal_name')"
+            class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+            [class.border-red-500]="isFacturacionFieldInvalid('nombre')"
+            [class.border-zinc-200]="!isFacturacionFieldInvalid('nombre')"
+            [title]="t('fiscal_name')"
+          />
+          @if (isFacturacionFieldInvalid('nombre')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('fiscal_name_required') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5 lg:col-span-1">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_ruc') }}</span>
+          <input
+            type="text"
+            formControlName="ruc"
+            [placeholder]="t('fiscal_ruc')"
+            class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+            [class.border-red-500]="isFacturacionFieldInvalid('ruc')"
+            [class.border-zinc-200]="!isFacturacionFieldInvalid('ruc')"
+            [title]="t('fiscal_ruc')"
+          />
+          @if (isFacturacionFieldInvalid('ruc')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('ruc_required') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5 lg:col-span-1">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_phone') }}</span>
+          <input
+            type="text"
+            formControlName="telefono"
+            [placeholder]="t('fiscal_phone')"
+            class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+            [class.border-red-500]="isFacturacionFieldInvalid('telefono')"
+            [class.border-zinc-200]="!isFacturacionFieldInvalid('telefono')"
+            [title]="t('fiscal_phone')"
+          />
+          @if (isFacturacionFieldInvalid('telefono')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('phone_required') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5 md:col-span-1 lg:col-span-2">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_address') }}</span>
+          <input
+            type="text"
+            formControlName="direccion"
+            [placeholder]="t('fiscal_address')"
+            class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+            [class.border-red-500]="isFacturacionFieldInvalid('direccion')"
+            [class.border-zinc-200]="!isFacturacionFieldInvalid('direccion')"
+            [title]="t('fiscal_address')"
+          />
+          @if (isFacturacionFieldInvalid('direccion')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('address_required') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_email') }}</span>
+          <input
+            type="email"
+            formControlName="correo"
+            [placeholder]="t('fiscal_email')"
+            class="w-full text-sm py-2.5 px-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-sans placeholder-zinc-400"
+            [class.border-red-500]="isFacturacionFieldInvalid('correo')"
+            [class.border-zinc-200]="!isFacturacionFieldInvalid('correo')"
+            [title]="t('fiscal_email')"
+          />
+          @if (isFacturacionFieldInvalid('correo')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('email_format_invalid') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_pass') }}</span>
+          <div class="relative flex items-center">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="contrasena"
+              placeholder="••••••••••••"
+              class="w-full text-sm py-2.5 pl-4 pr-12 rounded-xl border focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-mono placeholder-zinc-400"
+              [class.border-red-500]="isFacturacionFieldInvalid('contrasena')"
+              [class.border-zinc-200]="!isFacturacionFieldInvalid('contrasena')"
+              [title]="t('fiscal_pass')"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3.5 text-zinc-400 hover:text-zinc-650 transition-colors cursor-pointer outline-none flex items-center"
+              [title]="t('edit')"
+            >
+              <mat-icon class="text-lg leading-none">{{ showPassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+          </div>
+          @if (isFacturacionFieldInvalid('contrasena')) {
+            <p class="text-[10px] text-red-500 font-sans">{{ t('password_required') }}</p>
+          }
+        </div>
+
+        <div class="space-y-1.5 md:col-span-2 lg:col-span-4">
+          <span class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{{ t('fiscal_p12') }}</span>
+
+          <div
+            class="relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-7 transition-all cursor-pointer select-none min-h-[90px] focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500"
+            tabindex="0"
+            [class.border-red-500]="isP12Invalid()"
+            [class.border-emerald-500]="p12FileUploaded()"
+            [class.border-zinc-200]="!isP12Invalid() && !p12FileUploaded()"
+            [class.bg-emerald-50/20]="p12FileUploaded()"
+            [class.bg-zinc-50/10]="!p12FileUploaded() && !dragOver()"
+            [class.bg-emerald-50/35]="dragOver()"
+            (dragover)="$event.preventDefault(); dragOver.set(true)"
+            (dragleave)="dragOver.set(false)"
+            (drop)="onP12FileDropped($event)"
+            (click)="p12FileInput.click()"
+            (keydown.enter)="p12FileInput.click()"
+            [title]="t('fiscal_p12')"
+          >
+            <input
+              type="file"
+              #p12FileInput
+              (change)="onP12FileSelected($event)"
+              accept=".p12"
+              class="hidden"
+            />
+
+            <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2.5"
+                 [class.bg-emerald-100]="p12FileUploaded()"
+                 [class.text-emerald-700]="p12FileUploaded()"
+                 [class.bg-zinc-100]="!p12FileUploaded()"
+                 [class.text-zinc-500]="!p12FileUploaded()">
+              <mat-icon class="text-xl shrink-0">cloud_upload</mat-icon>
+            </div>
+
+            @if (p12FileUploaded()) {
+              <span class="text-xs font-semibold text-emerald-800 font-mono tracking-tight">{{ p12FileName() }}</span>
+              <span class="text-[10px] text-emerald-600 mt-1 font-sans">{{ t('p12_success') }}</span>
+            } @else {
+              <span class="text-xs font-semibold text-zinc-700 font-sans">{{ t('fiscal_p12') }}</span>
+              <span class="text-[10px] text-zinc-400 mt-1 font-sans text-center">{{ t('p12_drag_drop') }}</span>
+            }
+          </div>
+          @if (isP12Invalid()) {
+            <p class="text-[10px] text-red-500 font-sans mt-1">{{ t('p12_required') }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="flex items-start gap-2 pt-4 border-t border-zinc-150">
+        <mat-icon class="text-base text-zinc-400 shrink-0 select-none">info_outline</mat-icon>
+        <p class="text-xs text-zinc-400 italic font-sans leading-relaxed">
+          {{ t('sri_api_notice') }}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-3.5 pt-6 border-t border-zinc-200/50" id="facturacion-actions">
+      <button
+        type="button"
+        (click)="saveAndNext()"
+        class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs outline-none"
+        id="btn-facturacion-save-next"
+        title="Haga clic para validar, guardar sus datos fiscales y continuar a la pestaña de Integraciones."
+      >
+        <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
+        <span>{{ t('save_next') }}</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="saveAndExit()"
+        class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs outline-none"
+        id="btn-facturacion-save-exit"
+        title="Haga clic para validar, guardar la configuración fiscal y retornar inmediatamente a la pantalla del panel principal."
+      >
+        <mat-icon class="text-sm shrink-0">save</mat-icon>
+        <span>{{ t('save_exit') }}</span>
+      </button>
+    </div>
+  </form>
+</main>

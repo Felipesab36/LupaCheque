@@ -1,0 +1,188 @@
+@if (isOpen && selectedPayment) {
+  @let py = selectedPayment;
+  <div
+    id="payment-audit-modal-backdrop"
+    class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in p-4"
+  >
+    <div
+      id="payment-audit-modal-content"
+      [class]="isReceiptZoomed()
+        ? 'bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden max-w-5xl w-full flex flex-col md:flex-row transition-all duration-300 scale-100'
+        : 'bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden max-w-3xl w-full flex flex-col md:flex-row transition-all duration-300 scale-100'"
+    >
+      <div
+        [class]="isReceiptZoomed() ? 'md:w-3/5 border-r border-zinc-100 flex flex-col bg-zinc-50' : 'md:w-1/2 border-r border-zinc-100 flex flex-col bg-zinc-50'"
+        class="relative transition-all duration-305"
+      >
+        <div class="h-12 bg-red-600 px-4 flex items-center justify-between text-white font-bold text-xs shrink-0">
+          <span class="tracking-wide">{{ t('proof_of_payment') }}</span>
+          @if (py.status !== 'Pendiente') {
+            <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded font-sans uppercase">{{ t('inquiry_tab') }}</span>
+          }
+        </div>
+
+        <div class="flex-grow p-6 flex items-center justify-center relative min-h-[350px]">
+          <div
+            [class]="isReceiptZoomed() ? 'w-full max-w-md bg-white border-2 border-zinc-200 rounded-lg shadow-md p-6 relative font-sans text-xs text-zinc-650' : 'w-full max-w-xs bg-white border border-zinc-200 rounded-lg shadow-sm p-4 relative font-sans text-[11px] text-zinc-600'"
+            class="transition-all duration-300 divide-y divide-dashed divide-zinc-200"
+          >
+            <div class="pb-3 text-center">
+              <div class="font-bold text-amber-500 uppercase tracking-wider text-xs mb-1">BANCO PICHINCHA</div>
+              <div class="text-[9px] text-zinc-400">Comprobante de Transferencia Directa</div>
+            </div>
+
+            <div class="py-3 space-y-2 font-medium">
+              <div class="flex justify-between">
+                <span class="text-zinc-400">{{ t('status') }}:</span>
+                <span class="text-emerald-600 font-bold uppercase">{{ t('processed_successfully') }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-400">{{ t('source_label') }}</span>
+                <span class="font-mono text-zinc-700">Ahorros *******1234</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-400">{{ t('destination_label') }}</span>
+                <span class="font-mono text-zinc-700">LUPACHEQUE S.A.</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-400">{{ t('date_time_label') }}</span>
+                <span class="text-zinc-700">{{ py.paymentDateFormatted }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-400">{{ t('document_no_label') }}</span>
+                <span class="font-mono font-bold text-zinc-700">REF-0487519962</span>
+              </div>
+            </div>
+
+            <div class="pt-3 text-center animate-pulse">
+              <span class="text-zinc-400 font-medium text-[10px] uppercase font-bold">{{ t('transfer_value') }}</span>
+              <div class="text-2xl font-black text-zinc-900 font-mono mt-1">
+                {{ py.amount > 0 ? (py.amount | currency: 'USD') : '$5.00' }}
+              </div>
+              <div class="text-[9px] text-zinc-400 font-sans mt-0.5">{{ t('balance_recharge_transfer') }}</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="toggleReceiptZoom.emit()"
+            class="absolute bottom-3 right-3 p-2 rounded-full bg-white hover:bg-zinc-100 border border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:text-emerald-600 transition-all shadow-xs shrink-0 select-none cursor-pointer outline-none active:scale-90 flex items-center justify-center hover:scale-105"
+            [title]="isReceiptZoomed() ? t('zoom_out_label') : t('zoom_in_label')"
+          >
+            <mat-icon class="text-sm leading-none shrink-0">zoom_out_map</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-grow md:w-1/2 flex flex-col justify-between">
+        <div class="p-6 border-b border-zinc-100 flex items-center justify-between">
+          <div class="flex flex-col">
+            <span class="text-[9px] uppercase font-bold text-zinc-400 tracking-wider">{{ t('antifraud_audit') }}</span>
+            <h4 class="text-sm font-bold text-zinc-900 leading-tight">{{ t('recharge_actions') }}</h4>
+          </div>
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="p-1.5 rounded-lg bg-zinc-50 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 border border-zinc-200 hover:border-rose-100 transition-all cursor-pointer outline-none active:scale-95 flex items-center justify-center shrink-0 shadow-xs"
+            [title]="t('close_modal')"
+          >
+            <mat-icon class="text-sm shrink-0 leading-none">close</mat-icon>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-5 flex-grow">
+          <div class="bg-zinc-50 rounded-xl p-4 border border-zinc-150/80 space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-500 font-medium">{{ t('user_phone_label') }}</span>
+              <span class="font-mono font-bold text-zinc-800">{{ py.userPhone }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-500 font-medium">{{ t('recharged_amount') }}</span>
+              <span class="font-mono font-bold text-emerald-700">{{ py.amount | currency : 'USD' : 'symbol' : '1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-500 font-medium">{{ t('payment_status') }}</span>
+              @if (py.status === 'Correcto') {
+                <span class="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-emerald-100">{{ t('approved') }}</span>
+              } @else if (py.status === 'Pendiente') {
+                <span class="bg-amber-50 text-amber-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-amber-100 animate-pulse">{{ t('pending') }}</span>
+              } @else {
+                <span class="bg-rose-50 text-rose-800 text-[10px] px-2 py-0.5 rounded font-sans uppercase font-bold border border-rose-100 text-right">{{ t('status_rejected') }}</span>
+              }
+            </div>
+          </div>
+
+          @if (py.status === 'Pendiente') {
+            <div class="space-y-2.5">
+              <span class="text-xs font-bold text-zinc-700 block">{{ t('reject_reason_title') }}</span>
+              <textarea
+                id="textarea-reject-reason"
+                [value]="rejectReasonText()"
+                (input)="rejectReasonText.set($any($event.target).value)"
+                rows="4"
+                [placeholder]="t('reject_placeholder')"
+                class="w-full text-xs p-3.5 rounded-xl border border-zinc-200 bg-white focus:outline-none focus:ring-1 focus:ring-rose-500 hover:border-zinc-300 transition-all font-semibold text-zinc-700 resize-none font-sans"
+              ></textarea>
+            </div>
+          } @else {
+            <div class="bg-zinc-50 border border-zinc-250/30 rounded-xl p-4 text-xs font-medium text-zinc-550 space-y-2.5">
+              @if (py.status === 'Correcto') {
+                <div class="text-emerald-700 font-bold flex items-center gap-1.5 leading-none">
+                  <mat-icon class="text-base flex items-center leading-none">check_circle</mat-icon>
+                  <span>{{ t('transaction_approved_success') }}</span>
+                </div>
+                <p class="text-zinc-400 text-[10px] font-normal font-sans leading-relaxed">{{ t('recharge_audited_desc') }}</p>
+              } @else {
+                <div class="text-rose-700 font-bold flex items-center gap-1.5 leading-none">
+                  <mat-icon class="text-base flex items-center leading-none">error</mat-icon>
+                  <span>{{ t('recharge_rejected_title') }}</span>
+                </div>
+                <div class="space-y-1">
+                  <span class="block font-bold text-zinc-700">{{ t('reason_recorded_admin') }}</span>
+                  <p class="italic block bg-white border border-zinc-200 p-2.5 rounded font-mono text-[10px] text-zinc-600 select-all leading-normal">
+                    {{ py.rejectReason || t('no_specific_reasons') }}
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="p-6 border-t border-zinc-150 bg-zinc-50/50 shrink-0 flex flex-col gap-2.5">
+          @if (py.status === 'Pendiente') {
+            <button
+              id="btn-approve-payment-{{ py.id }}"
+              type="button"
+              (click)="approvePayment.emit(py.id)"
+              class="w-full py-3 px-6 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs border-b-2 border-emerald-850 hover:scale-101 active:scale-98 transition-all cursor-pointer outline-none flex items-center justify-center gap-2 text-xs"
+            >
+              <mat-icon class="text-sm leading-none shrink-0 font-bold">check</mat-icon>
+              <span>{{ t('accept_label') }}</span>
+            </button>
+
+            <button
+              id="btn-reject-payment-{{ py.id }}"
+              type="button"
+              [disabled]="rejectReasonText().trim().length === 0"
+              (click)="onReject(py.id)"
+              [class]="rejectReasonText().trim().length > 0
+                ? 'w-full py-3 px-6 rounded-xl font-bold border-b-2 border-rose-850 bg-rose-600 hover:bg-rose-700 text-white shadow-xs cursor-pointer transition-all hover:scale-101 active:scale-98 flex items-center justify-center gap-2 text-xs'
+                : 'w-full py-3 px-6 rounded-xl font-bold border border-zinc-200 bg-zinc-100 text-zinc-400 cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs'"
+            >
+              <mat-icon class="text-sm leading-none shrink-0 font-bold">block</mat-icon>
+              <span>{{ t('reject_label') }}</span>
+            </button>
+          } @else {
+            <button
+              type="button"
+              (click)="close.emit()"
+              class="w-full py-3 px-6 rounded-xl font-bold bg-zinc-800 hover:bg-zinc-700 text-white shadow-xs border-transparent hover:scale-101 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-2 text-xs"
+            >
+              <span>{{ t('close_audit_view') }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

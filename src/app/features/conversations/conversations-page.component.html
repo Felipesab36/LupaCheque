@@ -1,0 +1,188 @@
+<main class="flex-grow flex flex-col p-8 md:p-12 space-y-6 overflow-y-auto bg-zinc-50/50" id="container-central-content-chats">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-4 border-b border-zinc-200/50 space-y-4 md:space-y-0">
+    <div>
+      <h1 class="text-2xl font-bold text-zinc-900 tracking-tight flex items-center gap-2">
+        <mat-icon class="text-emerald-500">chat</mat-icon>
+        Simulador de Conversaciones IA
+      </h1>
+      <p class="text-xs text-zinc-400 mt-1 font-normal">
+        Pruebe las respuestas del bot de Gemini interactuando directamente con las directrices, reglas de monetización y análisis definidos en la pestaña "IA".
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      @if (geminiApiConfigured()) {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          API Key Configurada en Integraciones
+        </span>
+      } @else {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          Sin API Key de Gemini (Vaya a Integraciones)
+        </span>
+      }
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch flex-grow min-h-[550px]">
+    <div class="lg:col-span-4 bg-white border border-zinc-150 rounded-2xl p-5 flex flex-col space-y-4 shadow-xs">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-zinc-800 uppercase tracking-wider">Usuarios / Canales</h2>
+        <span class="text-xs bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium">
+          {{ users().length }} activos
+        </span>
+      </div>
+
+      <div class="space-y-2 overflow-y-auto max-h-[420px] pr-1" id="chat-users-list">
+        @for (user of users(); track user.phone) {
+          <button
+            (click)="selectChatUser(user.phone)"
+            class="w-full flex items-center justify-between p-3.5 rounded-xl text-left border transition-all cursor-pointer group"
+            [class]="selectedChatUser() === user.phone
+              ? 'bg-emerald-50/50 border-emerald-300 text-emerald-950 font-medium'
+              : 'bg-white hover:bg-zinc-50 border-zinc-100 text-zinc-700'"
+            [attr.id]="'chat-user-' + user.phone"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <div
+                class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                [class]="selectedChatUser() === user.phone ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-100 text-zinc-600'"
+              >
+                @if (user.phone === '+593999999999') {
+                  🇪🇨
+                } @else {
+                  📱
+                }
+              </div>
+              <div class="truncate">
+                <p class="text-sm shrink-0" [class]="selectedChatUser() === user.phone ? 'font-semibold text-emerald-900' : 'text-zinc-800'">
+                  {{ user.phone }}
+                </p>
+                <p class="text-3xs text-zinc-400 font-normal truncate mt-0.5">
+                  Activo desde: {{ user.activeSince | date:'shortDate' }}
+                </p>
+              </div>
+            </div>
+
+            <span
+              class="text-3xs px-2 py-0.5 rounded-full font-semibold border"
+              [class]="user.status === 'Pagado'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                : user.status === 'Bloqueado'
+                  ? 'bg-rose-50 text-rose-700 border-rose-100'
+                  : 'bg-zinc-50 text-zinc-600 border-zinc-100'"
+            >
+              {{ user.status }}
+            </span>
+          </button>
+        }
+      </div>
+
+      <div class="bg-zinc-50/80 border border-zinc-100/60 rounded-xl p-3.5 space-y-2 mt-auto">
+        <span class="text-3xs text-emerald-800 font-semibold tracking-wider uppercase flex items-center gap-1">
+          <mat-icon class="text-xs shrink-0">info</mat-icon> Comportamiento de IA
+        </span>
+        <p class="text-4xs text-zinc-500 leading-normal font-normal">
+          Este chat simula la recepción y respuesta de WhatsApp del usuario. Cuando usted escribe, se comporta como el cliente y Gemini se comporta como el agente de soporte de LupaCheque, aplicando reglas de cobro e incentivos.
+        </p>
+      </div>
+    </div>
+
+    <div class="lg:col-span-8 flex flex-col bg-white border border-zinc-150 rounded-2xl shadow-sm overflow-hidden h-full">
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/30">
+        <div class="flex items-center gap-3">
+          <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 border-4 border-white shadow-xs"></div>
+          <div>
+            <h3 class="text-sm font-semibold text-zinc-800">{{ selectedChatUser() }}</h3>
+            <p class="text-4xs text-zinc-400 font-medium tracking-wide">CANAL SIMULADO DE PRUEBA DE MENSAJERÍA</p>
+          </div>
+        </div>
+
+        <button
+          (click)="clearChatHistory()"
+          [disabled]="isChatLoading()"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50/50 border border-rose-100 rounded-lg transition-all cursor-pointer disabled:opacity-50"
+          id="btn-clear-chat-history"
+        >
+          <mat-icon class="text-sm">delete_outline</mat-icon>
+          Recomenzar Conversación
+        </button>
+      </div>
+
+      <div class="flex-grow p-6 space-y-4 overflow-y-auto bg-zinc-50/30 min-h-[320px] max-h-[380px] flex flex-col" id="chat-messages-container">
+        @for (msg of conversationsList(); track msg.timestamp) {
+          @if (msg.userPhone === selectedChatUser()) {
+            <div class="flex flex-col max-w-[80%]" [class]="msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'">
+              <div
+                class="p-3.5 rounded-2xl text-sm leading-relaxed shadow-xs"
+                [class]="msg.sender === 'user'
+                  ? 'bg-emerald-600 text-white rounded-br-none font-normal'
+                  : 'bg-white text-zinc-800 border border-zinc-150 rounded-bl-none font-normal'"
+              >
+                @if (msg.sender === 'bot') {
+                  <div class="flex items-center gap-1.5 mb-1 text-emerald-700 font-semibold text-4xs uppercase tracking-wide">
+                    <mat-icon class="text-xs leading-none shrink-0">psychology</mat-icon>
+                    Agente LupaCheque
+                  </div>
+                }
+
+                <p class="whitespace-pre-wrap">{{ msg.text }}</p>
+              </div>
+
+              <span class="text-4s text-zinc-400 mt-1 font-normal px-1">
+                {{ msg.timestamp | date:'shortTime' }}
+              </span>
+            </div>
+          }
+        } @empty {
+          <div class="flex-grow flex flex-col items-center justify-center p-8 text-center space-y-4 my-auto">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <mat-icon class="text-2xl leading-none">chat_bubble_outline</mat-icon>
+            </div>
+            <div class="max-w-md">
+              <h4 class="text-sm font-semibold text-zinc-800">¡Bandeja sin historiales!</h4>
+              <p class="text-xs text-zinc-400 leading-normal font-normal mt-1">
+                Escriba un mensaje abajo simulando al usuario <strong>{{ selectedChatUser() }}</strong>. Gemini procesará la consulta de acuerdo con sus parámetros de guardabarreras en "IA".
+              </p>
+            </div>
+          </div>
+        }
+
+        @if (isChatLoading()) {
+          <div class="self-start flex items-center gap-2 max-w-[200px]">
+            <div class="p-3 bg-white border border-zinc-150 rounded-2xl rounded-bl-none shadow-2xs flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="p-4 border-t border-zinc-150 bg-white flex items-center gap-3">
+        <input
+          [value]="chatInputText()"
+          (input)="chatInputText.set(txt.value)"
+          #txt
+          (keyup.enter)="sendChatMessage(txt)"
+          [disabled]="isChatLoading()"
+          type="text"
+          placeholder="Escriba un mensaje de prueba..."
+          class="flex-grow px-4.5 py-3 border border-zinc-200 focus:border-emerald-500 hover:border-zinc-300 focus:ring-1 focus:ring-emerald-500 rounded-xl text-sm outline-none bg-zinc-50/30 font-normal transition-all"
+          id="chat-message-input-text"
+        />
+
+        <button
+          (click)="sendChatMessage(txt)"
+          [disabled]="!chatInputText().trim() || isChatLoading()"
+          class="h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          id="btn-send-message-text"
+        >
+          <span>Enviar</span>
+          <mat-icon class="text-base leading-none">send</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

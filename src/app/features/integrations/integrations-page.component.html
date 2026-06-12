@@ -1,0 +1,322 @@
+<main class="flex-grow flex flex-col p-8 md:p-12 space-y-8 overflow-y-auto w-full" id="container-central-content-integrations">
+  <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-zinc-200/50 gap-4">
+    <div>
+      <h1 class="text-2xl font-bold font-sans text-zinc-900 tracking-tight" id="title-integrations">{{ t('integrations_title') }}</h1>
+      <p class="text-xs text-zinc-400 mt-1 font-sans">{{ t('integrations_desc') }}</p>
+    </div>
+    <div class="flex items-center gap-2 text-[11px] font-semibold text-zinc-500 bg-zinc-100 px-3.5 py-2 rounded-xl border border-zinc-200/60 shadow-xs shrink-0 select-none">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>{{ t('encrypted_tls') }}</span>
+    </div>
+  </div>
+
+  <div class="flex border border-zinc-200 bg-zinc-100/40 p-1.5 rounded-2xl w-full shadow-xs" id="integrations-subtabs">
+    <button
+      type="button"
+      (click)="activeIntegrationSubTab.set('meta')"
+      [class]="activeIntegrationSubTab() === 'meta'
+        ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs'
+        : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
+      title="Configuracion de la API Cloud de WhatsApp Business"
+      id="subtab-meta"
+    >
+      <mat-icon class="text-base">share</mat-icon>
+      <span>Meta / Facebook</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="activeIntegrationSubTab.set('gemini')"
+      [class]="activeIntegrationSubTab() === 'gemini'
+        ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs'
+        : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
+      title="Clave Secreta y Modelos de Google AI Studio"
+      id="subtab-gemini"
+    >
+      <mat-icon class="text-base">auto_awesome</mat-icon>
+      <span>Gemini AI</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="activeIntegrationSubTab.set('sri')"
+      [class]="activeIntegrationSubTab() === 'sri'
+        ? 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-emerald-800 bg-white shadow-xs font-semibold border-t-2 border-emerald-500 transition-all cursor-pointer text-xs'
+        : 'flex-grow flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-white/40 font-medium transition-all cursor-pointer text-xs'"
+      title="Enlace transaccional del Servicio de Rentas Internas de Ecuador"
+      id="subtab-sri"
+    >
+      <mat-icon class="text-base">receipt_long</mat-icon>
+      <span>SRI Ecuador</span>
+    </button>
+  </div>
+
+  <form [formGroup]="integrationsForm" class="space-y-6" id="form-integrations-tabs">
+    @if (activeIntegrationSubTab() === 'meta') {
+      <div class="space-y-6 animate-fade-in w-full bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-meta-fields">
+        <div class="flex items-start gap-3 pb-4 border-b border-zinc-100">
+          <div class="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
+            <mat-icon>chat_bubble</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-zinc-800">{{ t('whatsapp_cloud_api') }}</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ t('whatsapp_api_desc') }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          <div class="space-y-1.5 md:col-span-2">
+            <label for="meta-phone-code" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('sending_number') }}</label>
+            <div class="flex gap-2">
+              <div class="relative w-1/3 shrink-0">
+                <select
+                  id="meta-phone-code"
+                  formControlName="metaPhoneCode"
+                  class="w-full text-xs py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 bg-zinc-50 transition-all cursor-pointer font-sans"
+                  title="Selector del codigo telefonico de pais internacional."
+                >
+                  @for (opt of countrySelectOptions; track opt.code) {
+                    <option [value]="opt.code">{{ opt.flag }} {{ opt.code }}</option>
+                  }
+                </select>
+              </div>
+
+              <input
+                id="meta-phone-number"
+                type="text"
+                formControlName="metaPhoneNumber"
+                placeholder="0991234567"
+                class="flex-grow text-sm py-2 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+                title="Ingrese el numero de telefono celular remitente (sin el cero inicial)."
+              />
+            </div>
+            <p class="text-[10px] text-zinc-400">{{ t('phone_guide') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="meta-phone-id" class="block text-xs font-semibold text-zinc-500 uppercase">Phone Number ID</label>
+            <input
+              id="meta-phone-id"
+              type="text"
+              formControlName="metaPhoneId"
+              placeholder="1092837465012"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+              title="Identificador unico del numero telefonico dentro del Business Manager de Meta."
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('phone_resource_id') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="meta-waba-id" class="block text-xs font-semibold text-zinc-500 uppercase">WhatsApp Business Account ID</label>
+            <input
+              id="meta-waba-id"
+              type="text"
+              formControlName="metaWabaId"
+              placeholder="987654321098"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+              title="ID de la cuenta comercial de WhatsApp (WABA ID) asociada."
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('waba_id_desc') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="meta-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('interface_api_key') }}</label>
+            <input
+              id="meta-api-key"
+              type="password"
+              formControlName="metaApiKey"
+              placeholder="••••••••••••••••••••••••••••••••"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all"
+              title="Llave de autenticacion para las transacciones seguras de webhooks externos."
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('api_key_desc') }}</p>
+          </div>
+
+          <div class="space-y-1.5 col-span-1 md:col-span-2 lg:col-span-4 xl:col-span-1">
+            <label for="meta-token" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('system_user_token') }}</label>
+            <textarea
+              id="meta-token"
+              rows="2"
+              formControlName="metaToken"
+              placeholder="EAAGb3... (Codigo permanente extenso de Meta Developers)"
+              class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 transition-all font-mono"
+              title="Pegue el token de acceso permanente del usuario del sistema sin caducidad de Meta Developers."
+            ></textarea>
+            <p class="text-[10px] text-zinc-400">{{ t('meta_token_guide') }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (activeIntegrationSubTab() === 'gemini') {
+      <div class="space-y-6 animate-fade-in w-full bg-white p-6 md:p-8 rounded-3xl border border-zinc-200/80 shadow-xs" id="container-gemini-fields">
+        <div class="flex items-start gap-3 pb-4 border-b border-zinc-100">
+          <div class="p-2.5 bg-violet-50 text-violet-600 rounded-xl">
+            <mat-icon>auto_awesome</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-zinc-800">Google AI Studio Engine (Gemini)</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ t('cognitive_engine_desc') }}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="space-y-1.5 md:col-span-2 lg:col-span-2">
+            <label for="gemini-api-key" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('integrations_secret_key') }} (Google AI Studio)</label>
+            <input
+              id="gemini-api-key"
+              type="password"
+              formControlName="geminiApiKey"
+              placeholder="AIzaSy..."
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono"
+              [title]="t('integrations_secret_key')"
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('api_key_secure_notice') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="gemini-token" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('integrations_access_id') }}</label>
+            <input
+              id="gemini-token"
+              type="text"
+              formControlName="geminiToken"
+              placeholder="token-gcp-lc"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/10 transition-all font-mono"
+              [title]="t('integrations_access_id')"
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('traceability_id') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="gemini-model" class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('preferred_model') }}</label>
+            <select
+              id="gemini-model"
+              formControlName="geminiModel"
+              class="w-full text-xs py-2.5 px-3 rounded-xl border border-zinc-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white transition-all cursor-pointer font-sans"
+              [title]="t('preferred_model')"
+            >
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash ({{ t('active') }})</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Complejo)</option>
+            </select>
+            <p class="text-[10px] text-zinc-400 font-sans">{{ t('model_performance_notice') }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (activeIntegrationSubTab() === 'sri') {
+      <div class="space-y-6 animate-fade-in w-full bg-zinc-50 p-6 md:p-8 rounded-3xl border border-zinc-200 relative overflow-hidden" id="container-sri-fields">
+        <div class="absolute right-4 top-4 bg-rose-50 text-rose-800 text-[10px] font-bold px-3 py-1 rounded-full border border-rose-100 flex items-center gap-1.5 select-none animate-pulse">
+          <mat-icon class="text-xs">lock</mat-icon>
+          <span>{{ t('module_locked_security') }}</span>
+        </div>
+
+        <div class="flex items-start gap-3 pb-4 border-b border-zinc-200">
+          <div class="p-2.5 bg-zinc-100 text-zinc-500 rounded-xl">
+            <mat-icon>account_balance</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-zinc-700">{{ t('electronic_billing_ecuador') }}</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">{{ t('electronic_billing_desc') }}</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <span class="block text-xs font-semibold text-zinc-500 uppercase">{{ t('sri_web_services_locked') }}</span>
+          <div class="flex flex-wrap gap-5">
+            <div class="flex items-center gap-2 px-3 py-2 bg-rose-50/55 rounded-xl border border-rose-100/60 select-none opacity-50 cursor-not-allowed">
+              <div class="w-8 h-4 bg-rose-200 rounded-full relative transition-all">
+                <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-rose-600 rounded-full"></div>
+              </div>
+              <span class="text-xs font-semibold text-rose-700">{{ t('testing_env') }}</span>
+            </div>
+
+            <div class="flex items-center gap-2 px-3 py-2 bg-rose-50/55 rounded-xl border border-rose-100/60 select-none opacity-50 cursor-not-allowed">
+              <div class="w-8 h-4 bg-rose-200 rounded-full relative transition-all">
+                <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-rose-600 rounded-full"></div>
+              </div>
+              <span class="text-xs font-semibold text-rose-700">{{ t('production_env') }}</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-zinc-400">{{ t('sri_switch_notice') }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 opacity-60">
+          <div class="space-y-1.5">
+            <label for="sri-ruc" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('fiscal_ruc_abbr') }}</label>
+            <input
+              id="sri-ruc"
+              type="text"
+              formControlName="sriRuc"
+              placeholder="1791234567001"
+              class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
+              [title]="t('fiscal_ruc_abbr')"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="sri-firma" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('digital_signature_pass') }}</label>
+            <input
+              id="sri-firma"
+              type="password"
+              formControlName="sriFirmaPassword"
+              placeholder="••••••••"
+              class="w-full text-sm py-2 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
+              [title]="t('digital_signature_pass')"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="sri-token" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('provider_token_access') }}</label>
+            <input
+              id="sri-token"
+              type="text"
+              formControlName="sriToken"
+              placeholder="sri-tok-987"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
+              [title]="t('provider_token_access')"
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('traceability_id') }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="sri-api-key" class="block text-xs font-semibold text-zinc-400 uppercase">{{ t('sri_web_services_api_key') }}</label>
+            <input
+              id="sri-api-key"
+              type="password"
+              formControlName="sriApiKey"
+              placeholder="••••••••••••••••••••••••••••••••"
+              class="w-full text-sm py-2.5 px-4 rounded-xl border border-zinc-200 bg-zinc-100/40 cursor-not-allowed"
+              [title]="t('sri_web_services_api_key')"
+            />
+            <p class="text-[10px] text-zinc-400">{{ t('sri_security_key_desc') }}</p>
+          </div>
+        </div>
+      </div>
+    }
+  </form>
+
+  <div class="flex items-center justify-end gap-3.5 pt-6 border-t border-zinc-200/50" id="global-actions">
+    <button
+      type="button"
+      (click)="saveAndNext()"
+      class="flex items-center gap-2 bg-white text-zinc-700 hover:text-zinc-900 font-semibold py-3 px-6 rounded-2xl border border-zinc-200 shadow-[0_4px_0_0_#f4f4f5,0_4px_8px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_0_0_#e4e4e7,0_6px_10px_-2px_rgba(0,0,0,0.07)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#e4e4e7] transition-all cursor-pointer text-xs"
+      id="btn-save-next"
+      [title]="t('save_next')"
+    >
+      <mat-icon class="text-sm shrink-0">arrow_forward</mat-icon>
+      <span>{{ t('save_next') }}</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="saveAndExit()"
+      class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-2xl border border-emerald-700/60 shadow-[0_4px_0_0_#047857,0_4px_8px_-1px_rgba(4,120,87,0.15)] hover:shadow-[0_4px_0_0_#065f46,0_6px_10px_-2px_rgba(4,120,87,0.2)] active:translate-y-[3px] active:shadow-[0_1px_0_0_#065f46] transition-all cursor-pointer text-xs"
+      id="btn-save-exit"
+      [title]="t('save_exit')"
+    >
+      <mat-icon class="text-sm shrink-0">save</mat-icon>
+      <span>{{ t('save_exit') }}</span>
+    </button>
+  </div>
+</main>
