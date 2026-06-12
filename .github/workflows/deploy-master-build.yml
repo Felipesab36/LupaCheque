@@ -37,6 +37,7 @@ jobs:
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           set -euo pipefail
 
@@ -63,11 +64,13 @@ jobs:
           ssh-keyscan -p "${SSH_PORT:-22}" -H "${{ secrets.DEPLOY_HOST }}" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
 
       - name: Rsync build to server
+        env:
+          SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           # Ajusta ./dist al directorio de salida de tu build
           rsync -avz --delete -e "ssh -p ${SSH_PORT:-22}" ./dist/app/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.TARGET_DIR }}
       
       - name: Reload nginx
-        run: ssh -p ${SSH_PORT:-22} ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "${{ secrets.RELOAD_CMD }}" 
         env:
-          SSH_AUTH_SOCK: ${{ env.SSH_AUTH_SOCK }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: ssh -p ${SSH_PORT:-22} ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "${{ secrets.RELOAD_CMD }}" 
