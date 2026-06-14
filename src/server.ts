@@ -374,6 +374,112 @@ async function getConversationContents(phone: string): Promise<ChatContent[]> {
   }
 }
 
+function normalizePhoneVariants(phone: string): string[] {
+  const base = (phone || '').trim();
+  const noPlus = base.replace(/^\+/, '');
+  const withPlus = noPlus ? `+${noPlus}` : '';
+  return Array.from(new Set([base, withPlus, noPlus].filter(Boolean)));
+}
+
+function formatIsoDate(dateValue: unknown): string {
+  if (typeof dateValue !== 'string' || !dateValue.trim()) {
+    return 'N/A';
+  }
+  return dateValue.slice(0, 19).replace('T', ' ');
+}
+
+async function buildWhatsAppBusinessContext(phone: string): Promise<string> {
+  const db = await initFirestoreAdmin();
+  if (!db) {
+    return '';
+  }
+
+  const phoneVariants = normalizePhoneVariants(phone);
+  if (phoneVariants.length === 0) {
+    return '';
+  }
+
+  try {
+    let userData: Record<string, unknown> | null = null;
+
+    for (const variant of phoneVariants) {
+      const userById = await db.collection('users').doc(variant).get();
+      if (userById.exists) {
+        userData = userById.data() as Record<string, unknown>;
+        break;
+      }
+    }
+
+    if (!userData) {
+      for (const variant of phoneVariants) {
+        const userQuery = await db.collection('users').where('phone', '==', variant).limit(1).get();
+        if (!userQuery.empty) {
+          userData = userQuery.docs[0].data() as Record<string, unknown>;
+          break;
+        }
+      }
+    }
+
+    const paymentDocs: Array<{ id: string; data: Record<string, unknown> }> = [];
+    for (const variant of phoneVariants) {
+      const paymentsSnapshot = await db.collection('payments').where('userPhone', '==', variant).limit(20).get();
+      paymentsSnapshot.docs.forEach((docSnap) => {
+        paymentDocs.push({ id: docSnap.id, data: docSnap.data() as Record<string, unknown> });
+      });
+    }
+
+    const uniquePayments = Array.from(
+      new Map(paymentDocs.map((entry) => [entry.id, entry])).values(),
+    )
+      .sort((a, b) => {
+        const aDate = typeof a.data['paymentDate'] === 'string' ? new Date(a.data['paymentDate']).getTime() : 0;
+        const bDate = typeof b.data['paymentDate'] === 'string' ? new Date(b.data['paymentDate']).getTime() : 0;
+        return bDate - aDate;
+      })
+      .slice(0, 8);
+
+    const userPhone =
+      typeof userData?.['phone'] === 'string'
+        ? (userData['phone'] as string)
+        : phoneVariants[0];
+    const userStatus =
+      typeof userData?.['status'] === 'string'
+        ? (userData['status'] as string)
+        : 'No registrado';
+    const activeSince = formatIsoDate(userData?.['activeSince']);
+
+    const paymentsSummary =
+      uniquePayments.length === 0
+        ? '- No hay pagos registrados para este usuario.'
+        : uniquePayments
+            .map((entry) => {
+              const paymentDate = formatIsoDate(entry.data['paymentDate']);
+              const amount = typeof entry.data['amount'] === 'number' ? entry.data['amount'] : 0;
+              const status = typeof entry.data['status'] === 'string' ? entry.data['status'] : 'N/A';
+              const balance =
+                typeof entry.data['currentBalance'] === 'number' ? entry.data['currentBalance'] : 0;
+              return `- ${paymentDate} | monto: ${amount} | estado: ${status} | saldo: ${balance}`;
+            })
+            .join('\n');
+
+    return `
+# CONTEXTO OPERATIVO DEL USUARIO (WHATSAPP)
+- Telefono consultado: ${userPhone}
+- Estado de usuario: ${userStatus}
+- Activo desde: ${activeSince}
+- Cantidad de pagos recientes: ${uniquePayments.length}
+
+# PAGOS RECIENTES
+${paymentsSummary}
+
+Usa este contexto para responder dudas de cheques/pagos con precision. Si no hay datos suficientes, indicalo claramente y solicita el dato faltante.
+    `;
+  } catch (err) {
+    console.warn('No se pudo construir contexto de usuario/pagos para WhatsApp:', err);
+    return '';
+  }
+}
+
 function buildWhatsAppSystemInstruction(settings: IaRuntimeSettings): string {
   const iaUserInstructions = settings.iaUserInstructions;
   const iaAnalysisInstructions = settings.iaAnalysisInstructions;
@@ -489,13 +595,14 @@ app.post('/api/whatsapp/webhook', async (req, res) => {
 
         await persistConversationMessage(phone, 'user', incomingText);
         const contents = await getConversationContents(phone);
+        const businessContext = await buildWhatsAppBusinessContext(phone);
 
         let reply = '';
         try {
           reply = await generateGeminiText({
             apiKey: iaSettings.geminiApiKey,
             model: iaSettings.geminiModel || DEFAULT_GEMINI_MODEL,
-            systemInstruction: buildWhatsAppSystemInstruction(iaSettings),
+            systemInstruction: `${buildWhatsAppSystemInstruction(iaSettings)}\n${businessContext}`,
             contents,
           });
         } catch (aiErr) {
